@@ -36,6 +36,19 @@ to_theta = function(pre_theta){
   return (tf$cumsum(d[,2L:ncol(d)], axis=1L))
 }
 
+utils_scale = function (y){
+  min_y = min(y)
+  max_y = max(y)
+  return ( (y-min_y)/(max_y-min_y) )
+}
+
+utils_back_scale = function(y_scale, y){
+  min_y = min(y)
+  max_y = max(y)
+  return (y_scale * (max_y - min_y) + min_y)
+}
+
+
 
 # # testing:
 # #############################################
