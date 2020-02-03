@@ -43,7 +43,8 @@ to_theta = function(pre_theta){
   #Trivially calclutes theta_1 = h_1, theta_k = theta_k-1 + exp(h_k)
   d = tf$concat( c(tf$zeros(c(nrow(pre_theta),1L)),
                    tf$slice(pre_theta, begin = c(0L,0L), size = c(nrow(pre_theta),1L)),
-                   tf$math$exp(pre_theta[,2:ncol(pre_theta)])),axis=1L)
+                   #tf$math$exp(pre_theta[,2:ncol(pre_theta)])),axis=1L)
+                   tf$math$softplus(pre_theta[,2:ncol(pre_theta)])),axis=1L)
   #python d = tf.concat( (tf.zeros((h.shape[0],1)), h[:,0:1], tf.math.softplus(h[:,1:h.shape[1]])),axis=1)
   return (tf$cumsum(d[,2L:ncol(d)], axis=1L))
 }
