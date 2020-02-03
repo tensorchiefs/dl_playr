@@ -1,5 +1,17 @@
+utils_scale = function (y){
+  min_y = min(y)
+  max_y = max(y)
+  return ( (y-min_y)/(max_y-min_y) )
+}
+
+utils_back_scale = function(y_scale, y){
+  min_y = min(y)
+  max_y = max(y)
+  return (y_scale * (max_y - min_y) + min_y)
+}
+
 ############################################################
-# utils for mlt
+# utils for bernstein
 ############################################################
 
 init_beta_dist_for_h = function(len_theta){
@@ -36,52 +48,80 @@ to_theta = function(pre_theta){
   return (tf$cumsum(d[,2L:ncol(d)], axis=1L))
 }
 
-utils_scale = function (y){
-  min_y = min(y)
-  max_y = max(y)
-  return ( (y-min_y)/(max_y-min_y) )
-}
-
-utils_back_scale = function(y_scale, y){
-  min_y = min(y)
-  max_y = max(y)
-  return (y_scale * (max_y - min_y) + min_y)
-}
-
 ########################
-# Class mltnet
+# Class bernp
 # S3 Class build according to https://adv-r.hadley.nz/s3.html
 # My first class in R, hence some comments
 
 #"Private" and complete constructor. This constructor verifies the input.
-new_mltnet = function(len_theta = integer()){
+new_bernp = function(len_theta = integer()){
   stopifnot(is.integer(len_theta))
   stopifnot(len_theta > 0)
   structure( #strcutur is a bunch of data with 
     list( #bunch of data
       len_theta=len_theta,  
       beta_dist_h = init_beta_dist_for_h(len_theta),
-      beta_dist_h_dash = init_beta_dist_for_h_dash(len_theta)
+      beta_dist_h_dash = init_beta_dist_for_h_dash(len_theta),
+      stdnorm = tfd_normal(loc=0, scale=1)
     ),
-    class = "mltnet" #class attribute set so it's a class
+    class = "bernp" #class attribute set so it's a class
   )  
 }
 
-#"Public" Constructor 
-mltnet = function(len_theta=integer()){
-  new_mltnet(as.integer(len_theta))
+#"Public" Constructor to create an instance of class bernp
+bernp = function(len_theta=integer()){
+  new_bernp(as.integer(len_theta))
 }
+
+# Computes the trafo h_y(y|x) out_bern is the (unconstrained) output of the NN 
+bernp.eval_h = function(bernp, out_bern, y){
+  theta_im = to_theta(out_bern)
+  eval_h(theta_im, y_i = y, beta_dist_h = bernp$beta_dist_h)
+}
+
+# Computs NLL out_bern is the (unconstrained) output of the NN 
+bernp.nll = function(bernp, out_bern, y, out_eta = NULL) {
+  theta_im = to_theta(out_bern)
+  if (is.null(out_eta)){
+    z = eval_h(theta_im, y_i = y, beta_dist_h = bernp$beta_dist_h)
+  }else{
+    hy = eval_h(theta_im, y_i = y, beta_dist_h = bernp$beta_dist_h)
+    z = hy - out_eta[,1]
+  }
+  h_y_dash = eval_h_dash(theta_im, y, beta_dist_h_dash = bernp$beta_dist_h_dash)
+  return(-tf$math$reduce_mean(bernp$stdnorm$log_prob(z) + tf$math$log(h_y_dash)))
+}
+
+# Computs CPD for one row in the output batch  
+bernp.p_y = function(bernp, out_row, from, to, length.out){
+  stopifnot(out_row$shape[0] == 1) #We need a single row
+  theta_rep = to_theta(k_tile(out_row, c(length.out, 1)))
+  y_cont = keras_array(matrix(seq(from,to,length.out = length.out), nrow=length.out,ncol=1))
+  z = eval_h(theta_rep, y_cont, beta_dist_h = bernp$beta_dist_h)
+  p_y = bernp$stdnorm$prob(z) * as.array(eval_h_dash(theta_rep, y_cont, beta_dist_h_dash = bernp$beta_dist_h_dash))
+  df = data.frame(
+    y = seq(from,to,length.out = length.out),
+    p_y = p_y$numpy()
+  )
+  return (df)
+}
+
+
+# eval_h = function(bernp, theta_im, y){
+#    UseMethod("eval_h")
+# }
+
 
 # Implementation of generic methods
-print.mltnet = function(x) {
-  print('Hallo print TODO ')
-  print(x$len_theta)
-}
+# print.bernp = function(x) {
+#   print('Hallo print TODO ')
+#   print(x$len_theta)
+# }
 
 # Implementation of novel generic methods
-p_y.mltnet = function(mltnet, out) {
-  print(paste0('Hallo p_y TODO ', mltnet))
-}
+# p_y.bernp = function(bernp, out) {
+#   print(paste0('Hallo p_y TODO ', bernp))
+# }
 
 # # Registration of new generics
 # p_y = function(x, out) {
@@ -169,8 +209,8 @@ p_y.mltnet = function(mltnet, out) {
 
 
 
-if (TRUE){
-  d = mltnet(3)
+if (FALSE){
+  d = bernp(3)
   print(d)
   out = 4 #TODO replace if the output of the network
   p_y(d, 4)
