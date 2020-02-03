@@ -48,6 +48,45 @@ utils_back_scale = function(y_scale, y){
   return (y_scale * (max_y - min_y) + min_y)
 }
 
+########################
+# Class mltnet
+# S3 Class build according to https://adv-r.hadley.nz/s3.html
+# My first class in R, hence some comments
+
+#"Private" and complete constructor. This constructor verifies the input.
+new_mltnet = function(len_theta = integer()){
+  stopifnot(is.integer(len_theta))
+  stopifnot(len_theta > 0)
+  structure( #strcutur is a bunch of data with 
+    list( #bunch of data
+      len_theta=len_theta,  
+      beta_dist_h = init_beta_dist_for_h(len_theta),
+      beta_dist_h_dash = init_beta_dist_for_h_dash(len_theta)
+    ),
+    class = "mltnet" #class attribute set so it's a class
+  )  
+}
+
+#"Public" Constructor 
+mltnet = function(len_theta=integer()){
+  new_mltnet(as.integer(len_theta))
+}
+
+# Implementation of generic methods
+print.mltnet = function(x) {
+  print('Hallo print TODO ')
+  print(x$len_theta)
+}
+
+# Implementation of novel generic methods
+p_y.mltnet = function(mltnet, out) {
+  print(paste0('Hallo p_y TODO ', mltnet))
+}
+
+# # Registration of new generics
+# p_y = function(x, out) {
+#   UseMethod("p_y")
+# }
 
 
 # # testing:
@@ -127,3 +166,16 @@ utils_back_scale = function(y_scale, y){
 # # tf$version
 # tf_probability()
 # tf$compat$v2$enable_v2_behavior()
+
+
+
+if (TRUE){
+  d = mltnet(3)
+  print(d)
+  out = 4 #TODO replace if the output of the network
+  p_y(d, 4)
+  d$len_theta
+  d$beta_dist_h
+}
+
+
