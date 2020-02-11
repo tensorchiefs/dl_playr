@@ -96,5 +96,5 @@ for (run in 1:runs){ #<----------------
 }
 
 history = history[-1,]
-write.table(x = history, file = paste0('boston_cv_history',T_STEPS,'.csv'), row.names = FALSE, sep=';')
+write.table(x = history, file = paste0('./runs/boston_cv_history',T_STEPS,'.csv'), row.names = FALSE, sep=';')
 
