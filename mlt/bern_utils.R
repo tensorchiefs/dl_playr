@@ -80,8 +80,8 @@ bernp.eval_h = function(bernp, out_bern, y){
   eval_h(theta_im, y_i = y, beta_dist_h = bernp$beta_dist_h)
 }
 
-# Computs NLL out_bern is the (unconstrained) output of the NN 
-bernp.nll = function(bernp, out_bern, y, out_eta = NULL) {
+# Computs NLL out_bern is the (unconstrained ) output of the NN 
+bernp.nll = function(bernp, out_bern, y, y_range=1, out_eta = NULL) {
   theta_im = to_theta(out_bern)
   if (is.null(out_eta)){
     z = eval_h(theta_im, y_i = y, beta_dist_h = bernp$beta_dist_h)
@@ -90,7 +90,7 @@ bernp.nll = function(bernp, out_bern, y, out_eta = NULL) {
     z = hy - out_eta[,1]
   }
   h_y_dash = eval_h_dash(theta_im, y, beta_dist_h_dash = bernp$beta_dist_h_dash)
-  return(-tf$math$reduce_mean(bernp$stdnorm$log_prob(z) + tf$math$log(h_y_dash)))
+  return(-tf$math$reduce_mean(bernp$stdnorm$log_prob(z) + tf$math$log(h_y_dash)) + log(y_range) )
 }
 
 # Computs CPD for one row in the output batch  
