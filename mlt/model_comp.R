@@ -12,7 +12,7 @@ library(tfprobability)
 source('https://raw.githubusercontent.com/tensorchiefs/dl_playr/master/mlt/bern_utils.R')
 
 windows = FALSE
-T_STEPS = 15000
+T_STEPS = 15001
 runs = 3
 flds = NULL
 T_OUT = 100
@@ -96,18 +96,26 @@ for (run in 1:runs){ #<----------------
   source('model_1.R') 
   history = model_train(history) #Call model_train from last sourced model 
   
-  source('model_2.R')
-  history = model_train(history) #Call model_train from last sourced model
-  print(model_test(x_test, y_test))
-
-  source('model_3.R')
-  history = model_train(history) #Call model_train from last sourced model
-  print(model_test(x_test, y_test))
-
-  source('model_4.R')
-  history = model_train(history) #Call model_train from last sourced model
+  # source('model_2.R')
+  # history = model_train(history) #Call model_train from last sourced model
+  # print(model_test(x_test, y_test))
+  # 
+  # source('model_3.R')
+  # history = model_train(history) #Call model_train from last sourced model
+  # print(model_test(x_test, y_test))
+  # 
+  # source('model_4.R')
+  # history = model_train(history) #Call model_train from last sourced model
+  # print(model_test(x_test, y_test))
+  
+  short_name = 'model_5_reg'
+  reg_factor = 0.05
+  source('model_5.R')
+  history = model_train(history)
   print(model_test(x_test, y_test))
   
+  reg_factor = -1
+  short_name = 'model_5'
   source('model_5.R')
   history = model_train(history)
   print(model_test(x_test, y_test))

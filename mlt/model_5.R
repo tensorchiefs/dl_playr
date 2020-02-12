@@ -1,5 +1,4 @@
 optimizer = tf$keras$optimizers$Adam(learning_rate=0.0001)
-
 get_string = function(){
   return ("Model_5 with ")
 }
@@ -46,10 +45,10 @@ nll_model5 = function(bernp, out_bern, y, out_eta , out_gamma) {
   return(-tf$math$reduce_mean(bernp$stdnorm$log_prob(z) + tf$math$log(h_y_dash)) + log(s))
 }
 
-add_squarred_weights_penalty = function(ls, NLL, f=0.05){
-  for (l in ls){
-    #NLL = NLL + f*tf$reduce_sum(tf$math$square(l))
-    NLL = NLL + f*tf$reduce_sum(tf$math$abs(l))
+add_squarred_weights_penalty = function(weights, NLL, lambda=0.05){
+  for (w in weights){
+    NLL = NLL + lambda*tf$reduce_sum(tf$math$square(w)) #L2
+    #NLL = NLL + lambda*tf$reduce_sum(tf$math$abs(w)) #L1
   }
   return(NLL)
 }
@@ -62,8 +61,10 @@ train_step = function(x, y, model_hy, model_beta, model_gamma){
     beta_x = model_beta(x)
     gamma_x = model_gamma(x)
     NLL = nll_model5(my_bernp, out_bern = tilde_theta_im, y = y_train, out_eta = beta_x, out_gamma=gamma_x)
-    # NLL = add_squarred_weights_penalty(model_beta$trainable_variables, NLL) 
-    # NLL = add_squarred_weights_penalty(model_gamma$trainable_variables, NLL)
+    if (reg_factor > 0){
+      NLL = add_squarred_weights_penalty(weights=model_beta$trainable_variables, NLL=NLL, lambda=reg_factor)
+      NLL = add_squarred_weights_penalty(weights=model_gamma$trainable_variables, NLL=NLL, lambda=reg_factor)  
+    }
   })
   tvars = list(model_hy$trainable_variables, model_beta$trainable_variables, model_gamma$trainable_variables)
   grads = tape$gradient(NLL, tvars)
@@ -95,7 +96,7 @@ model_train = function(history, save_model = FALSE){
       print("Hall")
       print(nll$numpy())
       print(paste(r, 'likelihood (in optimize) ' ,l$numpy() , 'likelihood (in test) ',nll$numpy()))
-      history = rbind(history, c(r, run, l$numpy() , nll$numpy(), 'model_5'))
+      history = rbind(history, c(r, run, l$numpy() , nll$numpy(), short_name))
     } 
   }
   end_time = Sys.time() 
