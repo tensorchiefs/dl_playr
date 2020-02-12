@@ -43,7 +43,7 @@ nll_model5 = function(bernp, out_bern, y, out_eta , out_gamma) {
   sp = tf$math$softplus(out_gamma[,1])
   z =  sp * hy -  out_eta[,1]
   h_y_dash = sp * eval_h_dash(theta_im, y, beta_dist_h_dash = bernp$beta_dist_h_dash)
-  return(-tf$math$reduce_mean(bernp$stdnorm$log_prob(z) + tf$math$log(h_y_dash)))
+  return(-tf$math$reduce_mean(bernp$stdnorm$log_prob(z) + tf$math$log(h_y_dash)) + log(s))
 }
 
 add_squarred_weights_penalty = function(ls, NLL, f=0.05){
@@ -55,13 +55,15 @@ add_squarred_weights_penalty = function(ls, NLL, f=0.05){
 }
 
 train_step = function(x, y, model_hy, model_beta, model_gamma){
+  #x$assign_add(tf$random$normal(shape = tf$shape(x),stddev = 0.01))
+  #y$assign_add(tf$random$normal(shape = tf$shape(y),stddev = 0.01))
   with(tf$GradientTape() %as% tape, {
     tilde_theta_im = model_hy(ones)
     beta_x = model_beta(x)
     gamma_x = model_gamma(x)
     NLL = nll_model5(my_bernp, out_bern = tilde_theta_im, y = y_train, out_eta = beta_x, out_gamma=gamma_x)
-    NLL = add_squarred_weights_penalty(model_beta$trainable_variables, NLL) 
-    NLL = add_squarred_weights_penalty(model_gamma$trainable_variables, NLL)
+    # NLL = add_squarred_weights_penalty(model_beta$trainable_variables, NLL) 
+    # NLL = add_squarred_weights_penalty(model_gamma$trainable_variables, NLL)
   })
   tvars = list(model_hy$trainable_variables, model_beta$trainable_variables, model_gamma$trainable_variables)
   grads = tape$gradient(NLL, tvars)
@@ -89,8 +91,9 @@ model_train = function(history, save_model = FALSE){
       tilde_theta_im = model_hy(k_ones(c(y_test$shape[start_index],1)))
       beta_x = model_beta(x_test)
       gamma_x = model_gamma(x_test)
-      nll = nll_model5(my_bernp, out_bern = tilde_theta_im, y = y_test, out_eta = beta_x, out_gamma = gamma_x) +  log(s)
-      
+      nll = nll_model5(my_bernp, out_bern = tilde_theta_im, y = y_test, out_eta = beta_x, out_gamma = gamma_x)
+      print("Hall")
+      print(nll$numpy())
       print(paste(r, 'likelihood (in optimize) ' ,l$numpy() , 'likelihood (in test) ',nll$numpy()))
       history = rbind(history, c(r, run, l$numpy() , nll$numpy(), 'model_5'))
     } 

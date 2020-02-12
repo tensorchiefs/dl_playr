@@ -13,7 +13,7 @@ source('https://raw.githubusercontent.com/tensorchiefs/dl_playr/master/mlt/bern_
 
 windows = FALSE
 T_STEPS = 15000
-runs = 2
+runs = 3
 flds = NULL
 T_OUT = 100
 nb = 8
@@ -93,13 +93,24 @@ for (run in 1:runs){ #<----------------
   y_test = tf$Variable(y[idx_test,,drop=FALSE], dtype='float32')
   rm(x,y,d) #For savety
   
-  source('model_3.R') 
+  source('model_1.R') 
   history = model_train(history) #Call model_train from last sourced model 
+  
+  source('model_2.R')
+  history = model_train(history) #Call model_train from last sourced model
+  print(model_test(x_test, y_test))
+
+  source('model_3.R')
+  history = model_train(history) #Call model_train from last sourced model
+  print(model_test(x_test, y_test))
+
+  source('model_4.R')
+  history = model_train(history) #Call model_train from last sourced model
   print(model_test(x_test, y_test))
   
-  # source('model_5.R')
-  # history = model_train(history)
-  # print(model_test(x_test, y_test))
+  source('model_5.R')
+  history = model_train(history)
+  print(model_test(x_test, y_test))
   
 }
 
