@@ -11,8 +11,8 @@ library(tfprobability)
 #source('bern_utils.R')
 source('https://raw.githubusercontent.com/tensorchiefs/dl_playr/master/mlt/bern_utils.R')
 
-windows = TRUE
-T_STEPS = 500
+windows = FALSE
+T_STEPS = 15000
 runs = 2
 flds = NULL
 T_OUT = 100
@@ -29,19 +29,22 @@ if(windows){
 get_data_boston = function () {
   data("BostonHousing2", package = "mlbench")
   dat=BostonHousing2
+  dat$town = NULL
+  dat$cmedv = NULL #Remove second version of 
+  dat$chas = as.numeric(as.character(dat$chas))
   #str(dat)  #506 obs. of  19 variables
   names(dat)
   scale = max(dat$medv) - min(dat$medv)
-  dat$cmedv = NULL #Remove second version of 
   #dat$y_obs = dat$medv
   dat$y = utils_scale(dat$medv)
   dat$medv = NULL
   names(dat)
   y = as.matrix(dat$y)
-  x = as.matrix(dat[,5:ncol(dat)]) #<------ Here ist y dabei!!!!!!!
-  datx = dat[,5:(ncol(dat)-1)]
+  #x = as.matrix(dat[,5:ncol(dat)]) #<------ Here ist y dabei!!!!!!!
+  datx = dat[,4:(ncol(dat)-1)]
   print(paste0('Names in X : ',names(datx)))
   x = as.matrix(datx) #<------ Here ist y dabei gewesen!!!!
+  x = scale(x, center = TRUE, scale = TRUE)
   #rm(dat)
   #x is now data-matrix
   #y is repsone matrix
@@ -90,11 +93,17 @@ for (run in 1:runs){ #<----------------
   y_test = tf$Variable(y[idx_test,,drop=FALSE], dtype='float32')
   rm(x,y,d) #For savety
   
-  source('model_5.R')
-  history = model_train(history)
+  source('model_3.R') 
+  history = model_train(history) #Call model_train from last sourced model 
   print(model_test(x_test, y_test))
+  
+  # source('model_5.R')
+  # history = model_train(history)
+  # print(model_test(x_test, y_test))
+  
 }
 
 history = history[-1,]
-write.table(x = history, file = paste0('./runs/boston_cv_history',T_STEPS,'.csv'), row.names = FALSE, sep=';')
+save(history, file = paste0('./runs/boston_cv_history_',T_STEPS,'.Rdata'))
+
 
