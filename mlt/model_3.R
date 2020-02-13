@@ -46,7 +46,7 @@ new_model_3 = function(len_theta = integer(), x_dim, y_range){
   )  
 }
 
-train_step_3 = function(x, y, model){
+train_step = function(x, y, model){
   model_hy = model$model_hy
   model_beta = model$model_beta
   with(tf$GradientTape() %as% tape, {
@@ -65,7 +65,7 @@ train_step_3 = function(x, y, model){
   return(NLL)
 }
 
-train_step_au = tf_function(train_step_3)
+train_step_au = tf_function(train_step)
 
 #######################
 # The training function

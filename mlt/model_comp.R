@@ -8,20 +8,18 @@ library(tensorflow)
 library(tfprobability)
 
 # source('~/Documents/workspace/dl_playr/mlt/bern_utils.R')
+#source('https://raw.githubusercontent.com/tensorchiefs/dl_playr/master/mlt/bern_utils.R')
 source('bern_utils.R')
 source("model_utils.R")
 source('data.R')
-#source('https://raw.githubusercontent.com/tensorchiefs/dl_playr/master/mlt/bern_utils.R')
 
 windows = FALSE
-T_STEPS = 502
-runs = 2
+T_STEPS = 15000
+runs = 5
 flds = NULL
 T_OUT = 100
 nb = 20L
 len_theta = nb + 1L
-#safety_fact = 0.2 #0 no margin
-
 
 if(windows){
   start_index=1
@@ -70,7 +68,6 @@ for (run in 1:runs){ #<----------------
   y_train1 = tf$Variable(y[idx_train,,drop=FALSE], dtype='float32')
   y_test = tf$Variable(y[idx_test,,drop=FALSE], dtype='float32')
   rm(x,y,d) #For savety
-  #ones = k_ones(c(y_train1$shape[start_index],1))
   
   source('model_1.R')
   history = model_train(history, x_train1, y_train1) #Call model_train from last sourced model
@@ -84,30 +81,33 @@ for (run in 1:runs){ #<----------------
   model_3 = new_model_3(len_theta = len_theta, x_dim = x_dim, y_range=s)
   history = model_train(model_3, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS) #Call model_train from last sourced model
   print(model_test(model_3, x_test, y_test))
-  # 
-  # source('model_4.R')
-  # history = model_train(history, x_train1, y_train1) #Call model_train from last sourced model
-  # print(model_test(x_test, y_test))
-  # 
-  # short_name = 'model_5_reg'
-  # reg_factor = 0.05
-  # source('model_5.R')
-  # history = model_train(history, x_train1, y_train1)
-  # print(model_test(x_test, y_test))
+
+  #Model 4 is model 3 with real network instead of linear regression
+  source('model_4.R')
+  model_4 = new_model_4(len_theta = len_theta, x_dim = x_dim, y_range=s)
+  history = model_train(model_4, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS) #Call model_train from last sourced model
+  print(model_test(model_4, x_test, y_test))
   
-  #
-  # reg_factor = -1
-  # short_name = 'model_5'
-  # source('model_5.R')
-  # history = model_train(history, x_train, y_train)
-  # print(model_test(x_test, y_test))
   
-  # reg_factor = -1
-  # short_name = 'model_6'
-  # source('model_6.R')
-  # history = model_train(history, x_train, y_train)
-  # print(model_test(x_test, y_test))
+  source('model_5.R')
+  model_5 = new_model_5(len_theta = len_theta, x_dim = x_dim, y_range=s)
+  history = model_train(model_5, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS)
+  print(model_test(model_5, x_test, y_test))
   
+   
+  source('model_5.R')
+  reg_factor = 0.05
+  model_5_reg = new_model_5(len_theta = len_theta, x_dim = x_dim, y_range=s, reg_factor = reg_factor)
+  model_5_reg$name = paste0('model_5_reg', reg_factor)
+  history = model_train(model_5_reg, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS) 
+  print(model_test(model_5_reg,x_test, y_test))
+  
+  source('model_5.R')
+  model_6 = new_model_5(len_theta = len_theta, x_dim = x_dim, y_range=s, reg_factor = reg_factor, is_theta_x = TRUE)
+  model_6$name = paste0('model_6_reg', reg_factor)
+  history = model_train(model_6, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS) 
+  print(model_test(model_6,x_test, y_test))
+
 }
 
 history = history[-1,]
