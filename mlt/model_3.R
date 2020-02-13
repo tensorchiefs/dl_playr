@@ -95,9 +95,9 @@ model_train = function(model, history, x_train, y_train, x_test, y_test,T_STEPS,
 
 #######################
 # The training function
-model_test = function(x_test, y_test){
-  tilde_theta_im = model_hy(k_ones(c(y_test$shape[start_index],1)))
-  beta_x = model_beta(x_test)
-  nll = bernp.nll(my_bernp, out_bern = tilde_theta_im, y = y_test, out_eta = beta_x, y_range=s) 
+model_test = function(model, x_test, y_test){
+  tilde_theta_im = model$model_hy(k_ones(c(y_test$shape[start_index],1)))
+  beta_x = model$model_beta(x_test)
+  nll = bernp.nll(model$bernp, out_bern = tilde_theta_im, y = y_test, out_eta = beta_x, y_range=model$y_range) 
   return(nll$numpy())
 }

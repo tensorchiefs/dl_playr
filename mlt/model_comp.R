@@ -83,7 +83,7 @@ for (run in 1:runs){ #<----------------
   source('model_3.R')
   model_3 = new_model_3(len_theta = len_theta, x_dim = x_dim, y_range=s)
   history = model_train(model_3, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS) #Call model_train from last sourced model
-  # print(model_test(x_test, y_test))
+  print(model_test(model_3, x_test, y_test))
   # 
   # source('model_4.R')
   # history = model_train(history, x_train1, y_train1) #Call model_train from last sourced model
