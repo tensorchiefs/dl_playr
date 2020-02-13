@@ -1,4 +1,4 @@
-load('runs/boston_cv_history_15000.Rdata')
+load('runs/boston_cv_history_15002.Rdata')
 #history = read.table('runs/boston_cv_history15000.csv')
 library(ggplot2)
   
@@ -20,8 +20,9 @@ h$sample = as.factor(h$sample)
 h$fold = as.factor(h$fold)
 hh =h[!is.na(h$loss),] 
 
-ggplot(hh, aes(x=step,y=loss, color=sample, linetype=fold)) + 
-  ylim(-1,15)+ geom_hline(yintercept=2.5)+  geom_line() + facet_grid( ~ method)
+ggplot(hh, aes(x=step,y=loss, color=sample, linetype=fold)) +
+#+  ylim(-0,10)
+geom_hline(yintercept=2.5)+  geom_line() + facet_grid( ~ method)
 
 
 

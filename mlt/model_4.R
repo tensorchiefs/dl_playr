@@ -45,7 +45,7 @@ train_step = function(x, y, model_hy, model_beta){
 }
 
 train_step_au = tf_function(train_step)
-model_train = function(history, save_model = FALSE){
+model_train = function(history, x_train, y_train, save_model = FALSE){
   start_time = Sys.time()
   for (r in 1:T_STEPS){
     l  = train_step_au(x=x_train, y=y_train, model_hy=model_hy,model_beta=model_beta )  

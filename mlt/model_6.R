@@ -1,13 +1,14 @@
 optimizer = tf$keras$optimizers$Adam(learning_rate=0.0001)
 get_string = function(){
-  return ("Model_5 with ")
+  return ("Model_6 with ")
 }
 
 ## Model for the coefficients
 model_hy <- keras_model_sequential() 
 model_hy %>% 
-  #layer_dense(units=(10), input_shape = c(1), activation = 'tanh') %>% 
-  layer_dense(units=(nb+1),input_shape = c(1)) %>% 
+  layer_dense(units=(10), input_shape = c(ncol(x_train)), activation = 'tanh') %>% 
+  #layer_dense(units=(100), activation = 'tanh') %>% 
+  layer_dense(units=(nb+1)) %>% 
   layer_activation('linear') 
 summary(model_hy)
 
@@ -30,11 +31,11 @@ model_gamma %>%
   layer_dense(1, activation='linear') 
 summary(model_gamma)
 
-ones = k_ones(c(y_train$shape[start_index],1))#tf$Variable(as.matrix(dat$rm)[,drop=FALSE], dtype='float32')
+# ones = k_ones(c(y_train$shape[start_index],1))#tf$Variable(as.matrix(dat$rm)[,drop=FALSE], dtype='float32')
 my_bernp = bernp(len_theta = len_theta)
-tilde_theta_im = model_hy(ones)
-beta_x = model_beta(x_train)
-gamma_x = model_gamma(x_train)
+# tilde_theta_im = model_hy(ones)
+# beta_x = model_beta(x_train)
+# gamma_x = model_gamma(x_train)
 
 nll_model5 = function(bernp, out_bern, y, out_eta , out_gamma) {
   theta_im = to_theta(out_bern)
@@ -57,7 +58,7 @@ train_step = function(x, y, model_hy, model_beta, model_gamma){
   #x$assign_add(tf$random$normal(shape = tf$shape(x),stddev = 0.01))
   #y$assign_add(tf$random$normal(shape = tf$shape(y),stddev = 0.01))
   with(tf$GradientTape() %as% tape, {
-    tilde_theta_im = model_hy(ones)
+    tilde_theta_im = model_hy(x)
     beta_x = model_beta(x)
     gamma_x = model_gamma(x)
     NLL = nll_model5(my_bernp, out_bern = tilde_theta_im, y = y_train, out_eta = beta_x, out_gamma=gamma_x)
@@ -89,12 +90,10 @@ model_train = function(history, x_train, y_train, save_model = FALSE){
                        model_beta=model_beta, model_gamma=model_gamma )  
     if (r %% T_OUT == 0){
       
-      tilde_theta_im = model_hy(k_ones(c(y_test$shape[start_index],1)))
+      tilde_theta_im = model_hy(x_test)
       beta_x = model_beta(x_test)
       gamma_x = model_gamma(x_test)
       nll = nll_model5(my_bernp, out_bern = tilde_theta_im, y = y_test, out_eta = beta_x, out_gamma = gamma_x)
-      print("Hall")
-      print(nll$numpy())
       print(paste(r, 'likelihood (in optimize) ' ,l$numpy() , 'likelihood (in test) ',nll$numpy()))
       history = rbind(history, c(r, run, l$numpy() , nll$numpy(), short_name))
     } 
@@ -102,15 +101,15 @@ model_train = function(history, x_train, y_train, save_model = FALSE){
   end_time = Sys.time() 
   
   if (save_model){
-    save_model_hdf5(model_hy, paste0('boston_cv_model5_hy_F',run,'_Steps_',T_STEPS))
-    save_model_hdf5(model_beta, paste0('boston_cv_model5_beta_F',run,'_Steps_',T_STEPS))
-    save_model_hdf5(model_gamma, paste0('boston_cv_model5_gamma_F',run,'_Steps_',T_STEPS))
+    save_model_hdf5(model_hy, paste0('boston_cv_model6_hy_F',run,'_Steps_',T_STEPS))
+    save_model_hdf5(model_beta, paste0('boston_cv_model6_beta_F',run,'_Steps_',T_STEPS))
+    save_model_hdf5(model_gamma, paste0('boston_cv_model6_gamma_F',run,'_Steps_',T_STEPS))
   }
   return(history)
 }
 
 model_test = function(x_test, y_test){
-  tilde_theta_im = model_hy(k_ones(c(y_test$shape[start_index],1)))
+  tilde_theta_im = model_hy(x_test)
   beta_x = model_beta(x_test)
   gamma_x = model_gamma(x_test)
   nll = nll_model5(my_bernp, out_bern = tilde_theta_im, y = y_test, out_eta = beta_x, out_gamma = gamma_x) + log(s)
