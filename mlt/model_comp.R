@@ -13,19 +13,14 @@ source('bern_utils.R')
 source("model_utils.R")
 source('data.R')
 
-windows = FALSE
-T_STEPS = 15000
+
+T_STEPS = 300
 runs = 5
 flds = NULL
 T_OUT = 100
 nb = 20L
 len_theta = nb + 1L
 
-if(windows){
-  start_index=1
-} else {
-  start_index=0
-}
 
 # Creation of folds ###
 #
@@ -42,13 +37,7 @@ if (is.null(flds)) {
 #Main Loop############ 
 #
 #run = 4 s
-
-# prepare data.frrame where we collect results in each step
-history = data.frame(matrix(NA, nrow = 1, ncol=4))
-names(history) = c('step', 'fold', 'nll_train', 'nll_test')
-history$method = 'NA'
-history.row = 1
-
+history = make_hist()
 for (run in 1:runs){ #<----------------
   # run =1
   print(run)
@@ -57,9 +46,8 @@ for (run in 1:runs){ #<----------------
   x_dim = as.integer(dim(x)[2])
   y=d$y
   s=d$scale
-  datt = d$dat
-  datt$y = y[,1]
   
+ 
   idx_train = flds[[run]]
   idx_test = setdiff(1:nrow(x), idx_train)
   
@@ -67,11 +55,15 @@ for (run in 1:runs){ #<----------------
   x_test = tf$Variable(x[idx_test,], dtype='float32')
   y_train1 = tf$Variable(y[idx_train,,drop=FALSE], dtype='float32')
   y_test = tf$Variable(y[idx_test,,drop=FALSE], dtype='float32')
-  rm(x,y,d) #For savety
   
   source('model_1.R')
-  history = model_train(history, x_train1, y_train1) #Call model_train from last sourced model
+  #--- For the mlt (still a bit unnice)
+  # uses the global variables idx_train and idx_test 
+  datt = d$dat
+  datt$y = y[,1]
+  history = model_train(history, NULL, NULL) #Call model_train from last sourced model
 
+  rm(x,y,d) #For savety
   source('model_2.R')
   model_2 = new_model_2(len_theta = len_theta, x_dim = x_dim, y_range=s)
   history = model_train(model_2, history, x_train1, y_train1, x_test, y_test, T_STEPS = T_STEPS) #Call model_train from last sourced model
@@ -88,13 +80,11 @@ for (run in 1:runs){ #<----------------
   history = model_train(model_4, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS) #Call model_train from last sourced model
   print(model_test(model_4, x_test, y_test))
   
-  
   source('model_5.R')
   model_5 = new_model_5(len_theta = len_theta, x_dim = x_dim, y_range=s)
   history = model_train(model_5, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS)
   print(model_test(model_5, x_test, y_test))
   
-   
   source('model_5.R')
   reg_factor = 0.05
   model_5_reg = new_model_5(len_theta = len_theta, x_dim = x_dim, y_range=s, reg_factor = reg_factor)

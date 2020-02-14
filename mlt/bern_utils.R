@@ -94,11 +94,16 @@ bernp.nll = function(bernp, out_bern, y, y_range=1, out_eta = NULL) {
 }
 
 # Computs CPD for one row in the output batch  
-bernp.p_y_h = function(bernp, out_row, from, to, length.out){
+bernp.p_y_h = function(bernp, out_row, from, to, length.out, out_eta = NULL){
   stopifnot(out_row$shape[0] == 1) #We need a single row
   theta_rep = to_theta(k_tile(out_row, c(length.out, 1)))
   y_cont = keras_array(matrix(seq(from,to,length.out = length.out), nrow=length.out,ncol=1))
-  z = eval_h(theta_rep, y_cont, beta_dist_h = bernp$beta_dist_h)
+  if (is.null(out_eta)){
+    z = eval_h(theta_rep, y_cont, beta_dist_h = bernp$beta_dist_h)  
+  } else{
+    hy = eval_h(theta_rep, y_cont, beta_dist_h = bernp$beta_dist_h)  
+    z = hy - out_eta[,1]
+  }
   p_y = bernp$stdnorm$prob(z) * as.array(eval_h_dash(theta_rep, y_cont, beta_dist_h_dash = bernp$beta_dist_h_dash))
   df = data.frame(
     y = seq(from,to,length.out = length.out),
