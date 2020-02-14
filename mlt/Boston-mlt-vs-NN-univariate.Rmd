@@ -33,7 +33,8 @@ library(basefun)
 library(keras)
 library(tensorflow)
 library(tfprobability)
-T_STEPS = 2000
+T_STEPS = 25000
+T_OUT = 5000
 ```
 
 Source functions h and h_dash in w and w/o batch magic
@@ -45,7 +46,6 @@ Source functions h and h_dash in w and w/o batch magic
 #source('https://raw.githubusercontent.com/tensorchiefs/dl_playr/master/mlt/bern_utils.R')
 #source('~/Documents/workspace/dl_playr/mlt/bern_utils.R')
 source('bern_utils.R')
-
 source('data.R')
 ```
 
@@ -55,25 +55,27 @@ We scale the y-varible to [0,1]
 ```{r}
 xy_dat = get_data_boston()
 dat = xy_dat$dat
-sum(dat$y**2) # 299626.3 to compare with BH data in paper
 dat$y_obs = dat$y
 dat$y = NULL
 y_range = xy_dat$scale
 dat$y_scale = dat$y_obs
 dat$y_obs = NULL
+
 x = xy_dat$x
 y = xy_dat$y
+
+x = x[,'rm',drop=FALSE]
 ```
 
 
 ## Defining the model
 We set up the formula for the model:
 ```{r}
-fm_large = (y_scale ~ crim + zn + indus + chas + nox + rm + age + dis + rad + tax + ptratio + b + lstat)
+#fm_large = (y_scale ~ crim + zn + indus + chas + nox + rm + age + dis + rad + tax + ptratio + b + lstat)
 #fm_small = (y_scale ~  rm + lstat) #lm log lik 346
-#fm_uni = (y_scale ~  rm)
-(fm = fm_large)
-is_univariate = TRUE
+fm_uni = (y_scale ~  rm)
+(fm = fm_uni)
+#is_univariate = TRUE
 sum(dat$rm**2)  # 20234.6 to compare with BH data in paper
 ```
 
@@ -81,7 +83,8 @@ sum(dat$rm**2)  # 20234.6 to compare with BH data in paper
 ```{r}
 fit_lm = lm(fm, data=dat)
 fit_lm$coef
-(logLik_lm=logLik(fit_lm) )/nrow(dat) + log(y_range)# the larger the better
+NLL_LM = logLik(fit_lm) /nrow(dat) + log(y_range)# the smaller the better
+NLL_LM
 ```
 
 
@@ -121,6 +124,7 @@ mlt_fit <- mlt(ctm, data = dat, verbose=TRUE)
 (logLik_mlt = logLik(mlt_fit))  #  df = nr-theta + nr-beta
 # compare to logLik of the baseline model - the larger the better
 NLL_MLT = -logLik_mlt / nrow(dat) + log(y_range)
+NLL_MLT
 ```
 
 ## Estimated coefficients with MLT
@@ -181,10 +185,9 @@ source('bern_utils.R')
 source("model_utils.R")
 x_dim = as.integer(dim(x)[2])
 model_3 = new_model_3(len_theta = as.integer(len_theta), x_dim = x_dim, y_range=y_range)
-T_OUT = 100
 run = 1
 history = model_train(model_3, make_hist(), x_train = x, y_train = y, 
-                      x_test = x, y_test = y, T_STEPS=15000)
+                      x_test = x, y_test = y, T_STEPS=T_STEPS)
 ```
 
 ```{r}
@@ -236,7 +239,8 @@ h_y_nn = df_nn$h
 # mlt
 h_y_mlt = predict(bb, newdata = y_grid, coef = theta_mlt, type='trafo')
 
-plot(df_nn$y, h_y_nn,  type='l', lty=2)
+
+plot(df_nn$y, h_y_nn,  type='l', lty=2, ylim=c(min(h_y_nn,h_y_mlt), max(h_y_nn,h_y_mlt)))
 lines(y_grid$y_scale, h_y_mlt, type='l',col='green')
 
 ```
@@ -254,7 +258,7 @@ h_full_nn = df_nn$h
 # mlt:
 h_full_mlt = predict(mlt_fit, newdata = dat[pick_idx,], q=y_grid$y_scale, type='trafo')
 
-plot(df_nn$y, h_full_nn, type='l', col='green')
+plot(df_nn$y, h_full_nn, type='l',lty=2,lwd=4, col='green')
 lines(y_grid$y_scale, h_full_mlt)
 
 ```
