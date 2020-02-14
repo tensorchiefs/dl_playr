@@ -95,7 +95,7 @@ bernp.nll = function(bernp, out_bern, y, y_range=1, out_eta = NULL) {
 
 # Computs CPD for one row in the output batch  
 bernp.p_y_h = function(bernp, out_row, from, to, length.out, out_eta = NULL){
-  stopifnot(out_row$shape[0] == 1) #We need a single row
+  stopifnot(out_row$shape[start_index] == 1) #We need a single row
   theta_rep = to_theta(k_tile(out_row, c(length.out, 1)))
   y_cont = keras_array(matrix(seq(from,to,length.out = length.out), nrow=length.out,ncol=1))
   if (is.null(out_eta)){
