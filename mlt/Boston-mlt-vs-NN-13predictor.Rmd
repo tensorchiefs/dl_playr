@@ -33,7 +33,8 @@ library(basefun)
 library(keras)
 library(tensorflow)
 library(tfprobability)
-T_STEPS = 2000
+T_STEPS = 35000
+nb = 8  # order defining the Number of Bernstein fct in polynom
 ```
 
 Source functions h and h_dash in w and w/o batch magic
@@ -89,7 +90,6 @@ fit_lm$coef
 
 ### Variable and Model definition and fit
 ```{r}
-nb = 1  # order defining the Number of Bernstein fct in polynom
 len_theta = nb+1
 # specify a numeric variable with data in [0,1] and principle bounds [0,Inf] 
 var_y <- numeric_var("y_scale", support = c(0, 1), bounds = c(-Inf, Inf), add = c(0,0))
@@ -183,8 +183,7 @@ x_dim = as.integer(dim(x)[2])
 model_3 = new_model_3(len_theta = as.integer(len_theta), x_dim = x_dim, y_range=y_range)
 T_OUT = 100
 run = 1
-history = model_train(model_3, make_hist(), x_train = x, y_train = y, 
-                      x_test = x, y_test = y, T_STEPS=15000)
+history = model_train(model_3, make_hist(), x_train = x, y_train = y, x_test = x, y_test = y, T_STEPS=T_STEPS)
 ```
 
 ```{r}

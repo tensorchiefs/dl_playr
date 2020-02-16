@@ -34,7 +34,7 @@ library(keras)
 library(tensorflow)
 library(tfprobability)
 T_STEPS = 25000
-T_OUT = 5000
+T_OUT = 1000
 ```
 
 Source functions h and h_dash in w and w/o batch magic
@@ -205,7 +205,7 @@ h$fold = as.factor(h$fold)
 hh =h[!is.na(h$loss),] 
 
 ggplot(hh, aes(x=step,y=loss, color=sample, linetype=fold)) +
-ylim(2,5) + geom_hline(yintercept=NLL_MLT)+  geom_line() + facet_grid(. ~ method)
+ylim(3,5) + geom_hline(yintercept=NLL_MLT)+  geom_line() + facet_grid(. ~ method)
 ```
 
 # Compare NN model to MLT model

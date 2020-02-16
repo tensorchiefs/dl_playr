@@ -23,7 +23,7 @@ get_data_boston = function () {
   datx = dat[,4:(ncol(dat)-1)]
   print(paste0('Names in X : ',names(datx)))
   x = as.matrix(datx) #<------ Here ist y dabei gewesen!!!!
-  x = scale(x, center = TRUE, scale = TRUE)
+  #x = scale(x, center = TRUE, scale = TRUE)
   #rm(dat)
   #x is now data-matrix
   #y is repsone matrix
