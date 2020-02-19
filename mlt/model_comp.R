@@ -14,11 +14,11 @@ source("model_utils.R")
 source('data.R')
 
 
-T_STEPS = 300
+T_STEPS = 15000
 runs = 5
 flds = NULL
 T_OUT = 100
-nb = 20L
+nb = 5L
 len_theta = nb + 1L
 
 
@@ -56,47 +56,53 @@ for (run in 1:runs){ #<----------------
   y_train1 = tf$Variable(y[idx_train,,drop=FALSE], dtype='float32')
   y_test = tf$Variable(y[idx_test,,drop=FALSE], dtype='float32')
   
+  datt = d$dat
+  datt$y = y[,1]
   source('model_1.R')
   #--- For the mlt (still a bit unnice)
   # uses the global variables idx_train and idx_test 
-  datt = d$dat
-  datt$y = y[,1]
   history = model_train(history, NULL, NULL) #Call model_train from last sourced model
 
-  rm(x,y,d) #For savety
-  source('model_2.R')
-  model_2 = new_model_2(len_theta = len_theta, x_dim = x_dim, y_range=s)
-  history = model_train(model_2, history, x_train1, y_train1, x_test, y_test, T_STEPS = T_STEPS) #Call model_train from last sourced model
-  print(model_test(model_2, x_test, y_test))
-
-  source('model_3.R')
-  model_3 = new_model_3(len_theta = len_theta, x_dim = x_dim, y_range=s)
-  history = model_train(model_3, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS) #Call model_train from last sourced model
-  print(model_test(model_3, x_test, y_test))
-
-  #Model 4 is model 3 with real network instead of linear regression
-  source('model_4.R')
-  model_4 = new_model_4(len_theta = len_theta, x_dim = x_dim, y_range=s)
-  history = model_train(model_4, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS) #Call model_train from last sourced model
-  print(model_test(model_4, x_test, y_test))
+  # rm(x,y,d) #For savety
+  # source('model_2.R')
+  # model_2 = new_model_2(len_theta = len_theta, x_dim = x_dim, y_range=s)
+  # history = model_train(model_2, history, x_train1, y_train1, x_test, y_test, T_STEPS = T_STEPS) #Call model_train from last sourced model
+  # print(model_test(model_2, x_test, y_test))
+  # 
+  # source('model_3.R')
+  # model_3 = new_model_3(len_theta = len_theta, x_dim = x_dim, y_range=s)
+  # history = model_train(model_3, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS) #Call model_train from last sourced model
+  # print(model_test(model_3, x_test, y_test))
+  # 
+  # #Model 4 is model 3 with real network instead of linear regression
+  # source('model_4.R')
+  # model_4 = new_model_4(len_theta = len_theta, x_dim = x_dim, y_range=s)
+  # history = model_train(model_4, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS) #Call model_train from last sourced model
+  # print(model_test(model_4, x_test, y_test))
+  # 
+  # source('model_5.R')
+  # model_5 = new_model_5(len_theta = len_theta, x_dim = x_dim, y_range=s)
+  # history = model_train(model_5, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS)
+  # print(model_test(model_5, x_test, y_test))
+  # 
+  # source('model_5.R')
+  # reg_factor = 0.05
+  # model_5_reg = new_model_5(len_theta = len_theta, x_dim = x_dim, y_range=s, reg_factor = reg_factor)
+  # model_5_reg$name = paste0('model_5_reg', reg_factor)
+  # history = model_train(model_5_reg, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS) 
+  # print(model_test(model_5_reg,x_test, y_test))
+  # 
+  # source('model_5.R')
+  # model_6 = new_model_5(len_theta = len_theta, x_dim = x_dim, y_range=s, reg_factor = reg_factor, is_theta_x = TRUE)
+  # model_6$name = paste0('model_6_reg', reg_factor)
+  # history = model_train(model_6, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS) 
+  # print(model_test(model_6,x_test, y_test))
   
-  source('model_5.R')
-  model_5 = new_model_5(len_theta = len_theta, x_dim = x_dim, y_range=s)
-  history = model_train(model_5, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS)
-  print(model_test(model_5, x_test, y_test))
-  
-  source('model_5.R')
-  reg_factor = 0.05
-  model_5_reg = new_model_5(len_theta = len_theta, x_dim = x_dim, y_range=s, reg_factor = reg_factor)
-  model_5_reg$name = paste0('model_5_reg', reg_factor)
-  history = model_train(model_5_reg, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS) 
-  print(model_test(model_5_reg,x_test, y_test))
-  
-  source('model_5.R')
-  model_6 = new_model_5(len_theta = len_theta, x_dim = x_dim, y_range=s, reg_factor = reg_factor, is_theta_x = TRUE)
-  model_6$name = paste0('model_6_reg', reg_factor)
-  history = model_train(model_6, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS) 
-  print(model_test(model_6,x_test, y_test))
+  source('model_7.R')
+  model_7 = new_model_7(len_theta = len_theta, x_dim = x_dim, y_range=s)
+  model_7$name = 'model_7'
+  history = model_train(model_7, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS) 
+  print(model_test(model_7,x_test, y_test))
 
 }
 

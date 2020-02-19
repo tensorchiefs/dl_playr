@@ -1,0 +1,521 @@
+---
+title: "Boston"
+author: "Beate and Oliver"
+date: "1/16/2020"
+output: pdf_document
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.width=6, fig.height=4)
+```
+
+## Goal of this script
+
+We want to implement linear transformation models in NN and compare the achieved NLL and estimated ceofficients with the MLT results.
+
+We fit a transformation function $h: (y|x) \rightarrow (z|x)$ with the property $(z|x)=h(y|x) \sim N(0,1)$
+
+In a  **linear** transformation model the transformation function has the special form:
+$h_{Y}(y)-\sum_i \beta_i x_i$
+
+Then we know, that.
+
+* $F_{Y{|X=x}}(y)=F_z(h_{Y}(y)-\sum_i \beta_i x_i)$
+
+
+## Importing the required packages
+```{r}
+library(MASS)
+library(ggplot2)
+library(mlt)
+library(basefun)
+library(keras)
+library(tensorflow)
+library(tfprobability)
+T_STEPS = 2000
+```
+
+Source functions h and h_dash in w and w/o batch magic
+
+```{r pressure, echo=TRUE, error=TRUE}
+# source("mlt_utils.R")  # eg scaling fct
+# # preparing eval_h an eval_h_dash, fct implemented in tfp
+# source("mlt_utils_keras_v2.R")  # causes error when knittering
+#source('https://raw.githubusercontent.com/tensorchiefs/dl_playr/master/mlt/bern_utils.R')
+source('~/Documents/workspace/dl_playr/mlt/bern_utils.R')
+source('data.R')
+```
+
+
+## Loading the data
+We scale the y-varible to [0,1]
+```{r}
+xy_dat = get_data_boston()
+dat = xy_dat$dat
+sum(dat$y**2) # 299626.3 to compare with BH data in paper
+dat$y_obs = dat$y
+dat$y = NULL
+y_range = xy_dat$scale
+dat$y_scale = dat$y_obs
+dat$y_obs = NULL
+x = xy_dat$x
+y = xy_dat$y
+```
+
+
+## Defining the model
+We set up the formula for the model:
+```{r}
+fm_large = (y_scale ~ crim + zn + indus + chas + nox + rm + age + dis + rad + tax + ptratio + b + lstat)
+#fm_small = (y_scale ~  rm + lstat) #lm log lik 346
+#fm_uni = (y_scale ~  rm)
+(fm = fm_large)
+is_univariate = TRUE
+sum(dat$rm**2)  # 20234.6 to compare with BH data in paper
+```
+
+## Baseline Linear Model
+```{r}
+fit_lm = lm(fm, data=dat)
+fit_lm$coef
+(logLik_lm=logLik(fit_lm) )/nrow(dat) + log(y_range)# the larger the better
+```
+
+
+## MLT fit and results
+
+### Variable and Model definition and fit
+```{r}
+nb = 8  # order defining the Number of Bernstein fct in polynom
+len_theta = nb+1
+# specify a numeric variable with data in [0,1] and principle bounds [0,Inf] 
+var_y <- numeric_var("y_scale", support = c(0, 1), bounds = c(-Inf, Inf), add = c(0,0))
+# what is done with the bound information (default bounds c(-INF, INF)
+
+# set up monoton increasing polynomial of order nb with Bernstein basis function
+bb <- Bernstein_basis(var_y, order=nb, ui="increasing")
+
+# set up grid in interval supp+add -> gives data.frame with col y_scale
+y_grid <- as.data.frame(mkgrid(bb, n = 500))
+
+# set up model for mlt
+ctm = ctm(bb, shift=fm[-2L], data=dat, todistr="Normal") 
+#~-1 + crim
+#ctm = ctm(bb, shift = ~ b + crim - 1, data=dat, todistr="Normal") 
+# fm[-2L] defnes the basis function for the shift term h_y(y) in h(y|x)=h_y(y)+h_x(x) 
+# the intercept is included in the baseline-trafo h_y(y) (not in linear predictor h_x(x))
+```
+
+Fit of the model:
+
+```{r}
+# fit the mlt model
+mlt_fit <- mlt(ctm, data = dat, verbose=TRUE)
+```
+
+## logLik with MLT
+```{r}
+(logLik_mlt = logLik(mlt_fit))  #  df = nr-theta + nr-beta
+# compare to logLik of the baseline model - the larger the better
+NLL_MLT = -logLik_mlt / nrow(dat) + log(y_range)
+```
+
+## Estimated coefficients with MLT
+
+Get the coefficients of the trafo h from the mlt fit:
+```{r}
+( mlt_fit$coef )
+
+( theta = mlt_fit$coef[1:(nb+1)] )
+( beta = mlt_fit$coef[(nb+2):length(mlt_fit$coef)] )
+```
+
+
+The conditional PDF for some observations
+```{r}
+  f_mlt = predict(mlt_fit, newdata=dat,  q=y_grid$y_scale, type='density')
+  
+  q_mlt = predict(mlt_fit, newdata=dat, 
+                  prob=c(0.025,0.25,0.5, 0.75,0.975), type='quantile')
+  q_mlt = t(q_mlt)
+  #q_mlt = matrix(q_mlt$exact, ncol = 5, byrow = TRUE)
+  set.seed(3)
+  idx = sample(1:ncol(f_mlt))[1:10]
+  m = max(f_mlt[,idx])
+  plot(y_grid$y_scale, f_mlt[,idx[1]], type='l',col='red', ylim=c(0,4),
+       main="mlt-predicted CPD for some picked predictors")
+  for (i in idx){
+    lines(y_grid$y_scale, f_mlt[,i], col=i)  
+  }
+```
+
+\newpage
+# NN
+## NN approach for a linear shift model, modeled with NN
+
+
+Fitting means to find the $nb$ coefficients *theta* for the Bernsteinpolynom which approximaties the transformation function with $nb$ being set to:
+```{r}
+nb
+```
+
+## Preparing input and output
+```{r}
+y = tf$Variable(as.matrix(dat$y_scale)[,drop=FALSE], dtype='float32')
+y$shape # has to be (#y,1)
+
+# conditional - we give the rm-variables as input to the NN
+#x = tf$Variable(as.matrix(dat$rm)[,drop=FALSE], dtype='float32')
+
+#x = tf$Variable(as.matrix(dat[,c('rm','lstat'),drop=FALSE]), dtype='float32')
+
+#dat$chas = as.numeric(as.character(dat$chas))
+x = tf$Variable(x, dtype='float32') #all
+x$shape  # has to be (#y,1) for a univariate model
+
+source('model_3.R')
+source('bern_utils.R')
+source("model_utils.R")
+x_dim = as.integer(dim(x)[2])
+model_3 = new_model_3(len_theta = as.integer(len_theta), x_dim = x_dim, y_range=y_range)
+T_OUT = 100
+run = 1
+history = model_train(model_3, make_hist(),x_train = x, y_train = y, x_test = x, y_test = y, T_STEPS=20000)
+```
+
+```{r}
+history$step = as.integer(history$step)
+history$fold = as.integer(history$fold)
+history$nll_train = as.numeric(history$nll_train)
+history$nll_test = as.numeric(history$nll_test)
+history$OK = NULL# = as.numeric(history$OK)
+
+library(tidyr)
+h = gather(history, 'sample', 'loss', nll_train:nll_test)
+h$loss = as.numeric(h$loss)
+h$sample = as.factor(h$sample)
+h$fold = as.factor(h$fold)
+hh =h[!is.na(h$loss),] 
+
+ggplot(hh, aes(x=step,y=loss, color=sample, linetype=fold)) +
+ylim(2,5) + geom_hline(yintercept=NLL_MLT)+  geom_line() + facet_grid(. ~ method)
+```
+```{r}
+beta_nn = model_3$model_beta$get_weights()
+beta_nn
+mlt_fit$coef[10:22]
+```
+```{r}
+  one = tf$ones(shape = c(1,1))
+  to_theta(model_3$model_hy(one))
+  mlt_fit$coef[1:9]
+```
+```{r}
+out_row = model_3$model_hy(one) #Pick row and compute CPD
+df = bernp.p_y_h(model_3$bernp, out_row, from = 0, to = 1, length.out = 100)
+plot(df$y, df$p_y)
+plot(df$y, df$h)
+```
+
+
+```{r}
+ddf = predict(bb, newdata = y_grid, coef = mlt_fit$coef[1:9], type='trafo')
+plot(df$y, df$h, ylim=c(-12,6), type='l', lty=2)
+lines(y_grid$y_scale, ddf+6.79, type='l',col='green')
+```
+```{r}
+```
+
+
+```{r}
+out_row = model_3$model_hy(one) #Pick row and compute CPD
+df = bernp.p_y_h(model_3$bernp, out_row, from = 0, to = 1, length.out = 100)
+h = df$h
+offset = as.numeric(beta_nn[[1]]) %*% x[1,1:13]$numpy()
+plot(df$y, h - as.numeric(offset), type='l', col='green')
+dd = predict(mlt_fit, newdata = dat[1,], q=y_grid$y_scale, type='trafo')
+lines(y_grid$y_scale, dd)
+```
+
+
+```{r}
+out_row = model_3$model_hy(one) #Pick row and compute CPD
+offset = as.numeric(beta_nn[[1]]) %*% x[1,1:13]$numpy()
+df = bernp.p_y_h(model_3$bernp, out_row, from = 0, to = 1, length.out = 100, out_eta = offset)
+h = df$p_y
+
+dd = predict(mlt_fit, newdata = dat[1,], q=y_grid$y_scale, type='density')
+plot(y_grid$y_scale, dd, ylim=c(0,8))
+
+lines(df$y, h , type='l', col='green')
+sum(h)/length(h)
+sum(dd)/length(dd)
+```
+
+
+\newpage
+## NN approach for a general transformation model model_2
+
+### NN architecture
+
+```{r}
+model <- keras_model_sequential() 
+model %>% 
+  layer_dense(units=(10), input_shape = c(ncol(x)), activation = 'relu') %>% 
+  #layer_dense(units=(100), activation = 'relu') %>% 
+  layer_dense(units=(nb+1)) %>% 
+  layer_activation('linear') 
+
+summary(model)
+```
+
+
+### Using NN outputs
+
+First, we intitialize $nb+1$ Beta-Distributions with the appropriate shape parameters to define a Bernstein function.
+```{r, error=TRUE}
+( len_theta = nb+1 )  #nb+1
+try( #Hack Attack
+  {
+  bernp(len_theta = len_theta)
+  bernp(len_theta = len_theta)
+  }
+)
+my_bernp = bernp(len_theta = len_theta)
+str(my_bernp)
+```
+
+Let's see what the untrained model yields:
+```{r}
+model(x)  # get output from untrained NN
+tilde_theta_im = model(x)
+tilde_theta_im$shape  # has to be (#y, nb+1)
+theta_im = to_theta(tilde_theta_im)
+theta_im # should always be the same, as the input is always 1
+```
+
+### Defining the Loss function
+
+The Loss is given by the negative log-likelihood. To compute the loss we need use the NN outputes for deriving the *thetas* and based on them $eval-h(\theta, y_{obs})$ and $eval-h'(\theta,y_{obs})$. The output of the NN are the $\theta_{pre}$
+
+```{r}
+out = model(x)
+NLL = bernp.nll(my_bernp, out, y, y_range = y_range)
+NLL
+```
+
+## Train the NN
+
+Choosing an optimizer
+```{r}
+optimizer = tf$optimizers$Adam()
+```
+
+Setting up a train step in which we define how to determine the gradients and the loss (which we return) and how to update the parameters with the chosen optimizer.
+
+```{r}
+
+train_step = function(x, y, model){
+  with(tf$GradientTape() %as% tape, {
+    out = model(x)
+    NLL = bernp.nll(my_bernp, out_bern = out, y = y, y_range = y_range)
+  })
+  grads = tape$gradient(NLL, model$trainable_variables)
+  optimizer$apply_gradients(
+    purrr::transpose(list(grads, model$trainable_variables))
+  )
+  return(NLL)
+}
+
+```
+
+Do some "decoration" to turn the train step into an *auto_graph* which makes the computation during training much faster.
+
+```{r}
+train_step_au = tf_function(train_step) 
+```
+
+Do the training and measure the needed time () - for a good fit we need almost 30000 steps taking some time...t
+```{r}
+start_time = Sys.time()
+for (r in 1:T_STEPS){
+  l  = train_step_au(x, y, model)  
+  if (r %% 1000 == 0){
+    print(paste(r, l))
+  } 
+}
+end_time = Sys.time() 
+```
+
+## NN results
+
+
+To measure performance we look at the NLL.
+```{r}
+out = model(x)
+nll = bernp.nll(my_bernp, out, y, y_range=y_range)
+
+print(paste('NN NNL (total)', nll*length(y)))
+print(paste('NN NLL (average)', nll ))
+print(paste('MLT NLL (average)', (-logLik_mlt/length(y) + log(y_range))))
+print(paste('LM NLL (average)', (logLik_lm/length(y)+ log(y_range))))
+
+```
+
+The MLT conditional PDF for some observations
+```{r}
+  f_mlt = predict(mlt_fit, newdata=dat,  q=y_grid$y_scale, type='density')
+  set.seed(1)
+  idx = sample(1:ncol(f_mlt))[1:4]
+  m = max(f_mlt[,idx])
+  cc = 1
+  plot(y_grid$y_scale, f_mlt[,idx[1]], col='white', ylim=c(0,4), xlim=c(-0.5,1.5), main="mlt-predicted CPD(solid) for some picked predictors vs NN (dashed)", type='l')
+  for (i in idx){
+    lines(y_grid$y_scale, f_mlt[,i], col=cc)
+    out_row = model(x[i,, drop=FALSE]) #Pick row and compute CPD
+    df = bernp.p_y_h(my_bernp, out_row, from = 0, to = 1, length.out = 100)# pred_dens(model, i, dat, beta_dist_h, beta_dist_h_dash, p=p)
+    lines(df$y, df$p_y, col=cc, lty=2)
+    cc = cc+1
+  }
+```
+\newpage
+## NN approach for a linear transformation model (a.k.a. model_3)
+
+$$
+h(y|x) = h_y(y) - \sum_i \beta_i \cdot x_i
+$$ 
+
+### NN architecture
+
+```{r}
+model_hy <- keras_model_sequential() 
+model_hy %>% 
+  layer_dense(units=(10), input_shape = c(1), activation = 'relu') %>% 
+  layer_dense(units=(100), activation = 'relu') %>% 
+  layer_dense(units=(nb+1)) %>% 
+  layer_activation('linear') 
+
+summary(model_hy)
+```
+```{r}
+model_beta <- keras_model_sequential() 
+model_beta %>% 
+  layer_dense(1, activation='linear', input_shape = c(ncol(x)), use_bias=FALSE)
+summary(model_beta)
+ncol(x)
+```
+
+
+```{r}
+y$shape
+x$shape
+ones = k_ones(c(y$shape[0],1))#tf$Variable(as.matrix(dat$rm)[,drop=FALSE], dtype='float32')
+ones$shape
+```
+
+### Using NN outputs
+
+First, we intitialize $nb+1$ Beta-Distributions with the appropriate shape parameters to define a Bernstein function.
+```{r, error=TRUE}
+( len_theta = nb+1 )  #nb+1
+try( #Hack Attack
+  {
+  bernp(len_theta = len_theta)
+  bernp(len_theta = len_theta)
+  }
+)
+my_bernp = bernp(len_theta = len_theta)
+str(my_bernp)
+```
+```{r}
+tilde_theta_im = model_hy(ones)
+beta_x = model_beta(x)
+bernp.nll(my_bernp, out_bern = tilde_theta_im, y = y, out_eta = beta_x, y_range = y_range)
+```
+
+
+```{r}
+train_step = function(x, y, model_hy, model_beta){
+  with(tf$GradientTape() %as% tape, {
+    tilde_theta_im = model_hy(ones)
+    beta_x = model_beta(x)
+    NLL = bernp.nll(my_bernp, out_bern = tilde_theta_im, y = y, out_eta = beta_x,y_range = y_range)
+  })
+  tvars = list(model_hy$trainable_variables, model_beta$trainable_variables)
+  grads = tape$gradient(NLL, tvars)
+  optimizer$apply_gradients(
+    purrr::transpose(list(grads[[1]], tvars[[1]]))
+  )
+  optimizer$apply_gradients(
+    purrr::transpose(list(grads[[2]], tvars[[2]]))
+  )
+  return(NLL)
+}
+```
+
+Do some "decoration" to turn the train step into an *auto_graph* which makes the computation during training much faster.
+
+```{r}
+train_step_au = tf_function(train_step) 
+```
+
+Do the training and measure the needed time () - for a good fit we need almost 30000 steps taking some time...t
+```{r}
+start_time = Sys.time()
+for (r in 1:45000){
+  l  = train_step_au(x, y, model_hy, model_beta)
+  if (r %% 1000 == 0){
+    print(paste(r, l))
+  } 
+}
+end_time = Sys.time() 
+end_time - start_time
+#"MLT NLL (average) 2.68526045005776"
+```
+
+Comparison of the linear predictor a.k.a. betas
+```{r}
+  d = model_beta$weights
+  round(t(d[[1]]$numpy()),3)
+  #to_theta(model_hy(ones))[1,]$numpy()  
+  round(mlt_fit$coef[10:22],3)
+```
+
+Comparison of the Bernstein Coefficients
+```{r}
+  to_theta(model_hy(ones))[1,]$numpy()  
+  round(mlt_fit$coef[1:9],3)
+```
+
+```{r}
+  f_mlt = predict(mlt_fit, newdata=dat,  q=y_grid$y_scale, type='density')
+  set.seed(1)
+  idx = sample(1:ncol(f_mlt))[1:4]
+  m = max(f_mlt[,idx])
+  cc = 1
+  plot(y_grid$y_scale, f_mlt[,idx[1]], col='white', ylim=c(0,4), xlim=c(-0.5,1.5), main="mlt-predicted CPD(solid) for some picked predictors vs NN (dashed)", type='l')
+  for (i in idx){
+    lines(y_grid$y_scale, f_mlt[,i], col=cc)
+    out_row = model(x[i,, drop=FALSE]) #Pick row and compute CPD
+    df = bernp.p_y_h(my_bernp, out_row, from = 0, to = 1, length.out = 100)# pred_dens(model, i, dat, beta_dist_h, beta_dist_h_dash, p=p)
+    lines(df$y, df$p_y, col=cc, lty=2)
+    cc = cc+1
+  }
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

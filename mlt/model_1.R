@@ -25,9 +25,9 @@ calc_test_nll_mlt <- function(mlt_fit, datt, idx_test, s ) {
 
 nll = calc_test_nll_mlt(mlt_fit, datt, idx_test, s )
 model_train = function(history, x_train, y_train, save_model = FALSE){
-  history[history.row,] = c(1, run, -logLik(mlt_fit)/length(idx_train) + log(s), 
-                            nll, 'model_1')
-  history.row = history.row + 1
+  # history[history.row,] = c(1, run, -logLik(mlt_fit)/length(idx_train) + log(s), 
+  #                           nll, 'model_1')
+  # history.row = history.row + 1
   history = rbind(history, c(1, run, -logLik(mlt_fit)/length(idx_train) + log(s), nll, 'model_1'))
   history = rbind(history, c(T_STEPS, run, -logLik(mlt_fit)/length(idx_train) + log(s), nll, 'model_1'))
   return (history)
