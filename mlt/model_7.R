@@ -113,3 +113,38 @@ model_test = function(model, x_test, y_test){
   NLL = calc_NLL(out_hy, g, s, y_test, model$y_range, model$bernp)
   return(NLL$numpy())
 }
+
+model_get_p_y = function(model, x, from, to, length.out){
+  bernp = model$bernp
+  #stopifnot(x$shape[start_index] == 1) #We need a single row
+  y_cont = keras_array(matrix(seq(from,to,length.out = length.out), nrow=length.out,ncol=1))
+  
+  out_hy = model$model(x)
+  theta_im = to_theta(out_hy)
+  
+  g = model$model_g(x)
+  s = model$model_s(x)
+  
+  y_tilde = g*y_cont - s - 0.5 #TODO make nicer
+  y_tilde_2 = tf$math$sigmoid(y_tilde)
+  
+  theta_rep = to_theta(k_tile(theta_im, c(length.out, 1)))
+  z = eval_h(theta_rep, y_tilde_2, beta_dist_h = bernp$beta_dist_h)  
+  p_y = bernp$stdnorm$prob(z) * as.array(eval_h_dash(theta_rep, y_tilde_2, beta_dist_h_dash = bernp$beta_dist_h_dash))
+  p_y = tf$transpose(p_y * g) * tf$math$sigmoid(y_tilde) * (1.0 - tf$math$sigmoid(y_tilde))
+  
+  df = data.frame(
+    y = seq(from,to,length.out = length.out),
+    p_y = as.numeric(p_y),
+    h = z$numpy()
+  )
+  return (df)
+}
+
+
+
+
+
+
+
+

@@ -18,7 +18,7 @@ T_STEPS = 15000
 runs = 5
 flds = NULL
 T_OUT = 100
-nb = 5L
+nb = 15L
 len_theta = nb + 1L
 
 
@@ -58,7 +58,7 @@ for (run in 1:runs){ #<----------------
   
   datt = d$dat
   datt$y = y[,1]
-  source('model_1.R')
+  debugSource('model_1.R')
   #--- For the mlt (still a bit unnice)
   # uses the global variables idx_train and idx_test 
   history = model_train(history, NULL, NULL) #Call model_train from last sourced model
@@ -103,7 +103,12 @@ for (run in 1:runs){ #<----------------
   model_7$name = 'model_7'
   history = model_train(model_7, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS) 
   print(model_test(model_7,x_test, y_test))
-
+  
+  for (i in 1:40){
+    ret = model_get_p_y(model_7, x_train1[i,,drop=FALSE], 0, 1, 300)
+    plot(ret$y, ret$h, main=i)
+    sum(ret$p_y)/300  
+  }
 }
 
 history = history[-1,]

@@ -30,6 +30,8 @@ model_train = function(history, x_train, y_train, save_model = FALSE){
   # history.row = history.row + 1
   history = rbind(history, c(1, run, -logLik(mlt_fit)/length(idx_train) + log(s), nll, 'model_1'))
   history = rbind(history, c(T_STEPS, run, -logLik(mlt_fit)/length(idx_train) + log(s), nll, 'model_1'))
+  pred_median = predict(mlt_fit, newdata = datt[idx_test,], type='quantile', prob=0.5)
+  sprintf("MLT MAD on Test %.4f", mean(abs(as.numeric(pred_median) - datt$y[idx_test])))
   return (history)
 }
 
