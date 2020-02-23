@@ -18,9 +18,9 @@
   model <- keras_model_sequential() 
   model %>% 
     layer_dense(units=(10), input_shape = c(x_dim), activation = 'tanh') %>% 
-    #layer_dense(units=(100), activation = 'tanh') %>% 
+    layer_dense(units=(100), activation = 'tanh') %>% 
     layer_dense(units=1) %>% 
-    layer_activation('softplus') 
+    layer_activation('softplus') #TODO why not linear
   return (model)
 }
 
@@ -29,17 +29,35 @@
   modeld <- keras_model_sequential() 
   modeld %>% 
     layer_dense(units=(10), input_shape = c(x_dim), activation = 'tanh') %>% 
-    #layer_dense(units=(100), activation = 'tanh') %>% 
+    layer_dense(units=(100), activation = 'tanh') %>% 
     layer_dense(units=1) %>% 
     layer_activation('linear') 
   return (modeld)
 }
 
+###############################
+# Linear shift term gives coefficients for the predictor (beta)
+.make_model_beta = function(x_dim){
+  model_beta <- keras_model_sequential() 
+  model_beta %>% 
+    layer_dense(10, activation='tanh', input_shape = x_dim) %>% 
+    layer_dense(50, activation='tanh') %>% 
+    layer_dense(10, activation='tanh') %>% 
+    layer_dense(5, activation='tanh') %>% 
+    layer_dense(1, activation='linear')
+  return(model_beta)
+}
+
 
 #"Private" and complete constructor. This constructor verifies the input.
-new_model_7 = function(len_theta = integer(), x_dim, y_range){
+new_model_7 = function(len_theta = integer(), x_dim, y_range, eta_term=FALSE, reg_factor=-1){
   stopifnot(is.integer(len_theta))
   stopifnot(len_theta > 0)
+  model_beta = NULL
+  if (eta_term){
+    model_beta = .make_model_beta(x_dim)
+  }
+  
   structure( #strcutur is a bunch of data with 
     list( #bunch of data
       len_theta=len_theta,  
@@ -48,7 +66,9 @@ new_model_7 = function(len_theta = integer(), x_dim, y_range){
       model = .make_model(len_theta, x_dim),
       model_g = .make_model_g(x_dim),
       model_s = .make_model_s(x_dim),
+      model_beta = model_beta,
       bernp = make_bernp(len_theta),
+      reg_factor = reg_factor,
       y_range = y_range,
       name = 'model_7'
     ),
@@ -56,18 +76,37 @@ new_model_7 = function(len_theta = integer(), x_dim, y_range){
   )  
 }
 
-calc_NLL = function(out_hy, g, s, y_train, y_range, bernp) {
-  y_tilde = g*y_train - s - 0.5 #TODO make nicer
+add_squarred_weights_penalty = function(weights, NLL, lambda=0.05){
+  for (w in weights){
+    NLL = NLL + lambda*tf$reduce_sum(tf$math$square(w)) #L2
+    #NLL = NLL + lambda*tf$reduce_sum(tf$math$abs(w)) #L1
+  }
+  return(NLL)
+}
+
+calc_NLL = function(out_hy, g, s, y_train, y_range, out_eta, bernp) {
+  y_tilde = g*y_train - s #TODO make nicer
   y_tilde_2 = tf$math$sigmoid(y_tilde)
   # print(summary(as.numeric(y_tilde)))
   # print('g')
-  #print(summary(as.numeric(y_tilde_2)))
+  # print(summary(as.numeric(y_tilde_2)))
   theta_im = to_theta(out_hy)
-  z = eval_h(theta_im, y_i = y_tilde_2, beta_dist_h = bernp$beta_dist_h)
+  if (!is.null(out_eta)){
+    z = eval_h(theta_im, y_i = y_tilde_2, beta_dist_h = bernp$beta_dist_h) - out_eta[,1]
+  } else {
+    z = eval_h(theta_im, y_i = y_tilde_2, beta_dist_h = bernp$beta_dist_h) 
+  }
   h_y_dash_part1 = eval_h_dash(theta_im, y_tilde_2, beta_dist_h_dash = bernp$beta_dist_h_dash) 
   h_y_dash_part2 = g 
+  #sig' = sig(1-sig)
   l_h_y_dash_part3 = tf$math$log(tf$math$sigmoid(y_tilde)) +  tf$math$log((1 - tf$math$sigmoid(y_tilde)))
-  return(-tf$math$reduce_mean(bernp$stdnorm$log_prob(z) + tf$math$log(h_y_dash_part1) + tf$math$log(h_y_dash_part2) +l_h_y_dash_part3) + log(y_range))
+  return(-tf$math$reduce_mean(
+    bernp$stdnorm$log_prob(z) + 
+    tf$math$log(h_y_dash_part1) + 
+    tf$math$log(h_y_dash_part2) +
+    l_h_y_dash_part3) + 
+    log(y_range)
+    )
 }
 
 train_step = function(x_train, y_train, model){
@@ -75,7 +114,12 @@ train_step = function(x_train, y_train, model){
     out_hy = model$model(x_train)
     g = model$model_g(x_train)
     sss = model$model_s(x_train)
-    NLL = calc_NLL(out_hy, g, sss, y_train, model$y_range, model$bernp)
+    NLL = calc_NLL(out_hy, g, sss, y_train, model$y_range, out_eta = model$beta_x, bernp=model$bernp)
+    if (model$reg_factor > 0){
+      NLL = add_squarred_weights_penalty(weights=model$model$trainable_variables, NLL=NLL, lambda=model$reg_factor)
+      NLL = add_squarred_weights_penalty(weights=model$model_g$trainable_variables, NLL=NLL, lambda=model$reg_factor)
+      NLL = add_squarred_weights_penalty(weights=model$model_s$trainable_variables, NLL=NLL, lambda=model$reg_factor)
+    }
   })
   grads = tape$gradient(NLL, model$model$trainable_variables)
   model$optimizer$apply_gradients(
@@ -94,7 +138,13 @@ model_train = function(model, history, x_train, y_train, x_test, y_test,save_mod
       out_hy = model$model(x_test)
       g = model$model_g(x_test)
       s = model$model_s(x_test)
-      NLL = calc_NLL(out_hy, g, s, y_test, model$y_range, model$bernp)
+      model_beta = model$model_beta
+      if (!is.null(model_beta)){
+        beta_x = model$model_beta(x_test)  
+      } else {
+        beta_x = NULL
+      }
+      NLL = calc_NLL(out_hy, g, s, y_test, model$y_range, out_eta = beta_x, bernp=model$bernp)
       print(paste(r, 'likelihood (in optimize) ' ,l$numpy(), 'likelihood (in test) ',NLL$numpy()))
       history = rbind(history, c(r, run, l$numpy() , NLL$numpy(), model$name))
     } 
@@ -110,7 +160,7 @@ model_test = function(model, x_test, y_test){
   out_hy = model$model(x_test)
   g = model$model_g(x_test)
   s = model$model_s(x_test)
-  NLL = calc_NLL(out_hy, g, s, y_test, model$y_range, model$bernp)
+  NLL = calc_NLL(out_hy, g, s, y_test, model$y_range,  out_eta = model$beta_x, bernp=model$bernp)
   return(NLL$numpy())
 }
 
@@ -125,11 +175,17 @@ model_get_p_y = function(model, x, from, to, length.out){
   g = model$model_g(x)
   s = model$model_s(x)
   
-  y_tilde = g*y_cont - s - 0.5 #TODO make nicer
+  y_tilde = g*y_cont - s
   y_tilde_2 = tf$math$sigmoid(y_tilde)
-  
-  theta_rep = to_theta(k_tile(theta_im, c(length.out, 1)))
-  z = eval_h(theta_rep, y_tilde_2, beta_dist_h = bernp$beta_dist_h)  
+  theta_rep = k_tile(theta_im, c(length.out, 1))
+  #print(theta_rep)
+  if(is.null( model$model_beta)){
+    z = eval_h(theta_rep, y_tilde_2, beta_dist_h = bernp$beta_dist_h)
+  } else{
+    beta_x = model$model_beta(x)
+    z = eval_h(theta_rep, y_tilde_2, beta_dist_h = bernp$beta_dist_h) - beta_x[,1]
+  }
+ 
   p_y = bernp$stdnorm$prob(z) * as.array(eval_h_dash(theta_rep, y_tilde_2, beta_dist_h_dash = bernp$beta_dist_h_dash))
   p_y = tf$transpose(p_y * g) * tf$math$sigmoid(y_tilde) * (1.0 - tf$math$sigmoid(y_tilde))
   
@@ -137,7 +193,9 @@ model_get_p_y = function(model, x, from, to, length.out){
     y = seq(from,to,length.out = length.out),
     p_y = as.numeric(p_y),
     h = z$numpy()
-  )
+    )
+  df$y_tilde = as.numeric(y_tilde)
+  df$y_tilde_2 = as.numeric(y_tilde_2)
   return (df)
 }
 

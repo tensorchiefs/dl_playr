@@ -1,5 +1,5 @@
 ## Data set
-get_data_boston = function () {
+get_data_boston = function (scale_x=FALSE) {
   data("BostonHousing2", package = "mlbench")
   dat=BostonHousing2
   dat$town = NULL
@@ -23,6 +23,9 @@ get_data_boston = function () {
   datx = dat[,4:(ncol(dat)-1)]
   print(paste0('Names in X : ',names(datx)))
   x = as.matrix(datx) #<------ Here ist y dabei gewesen!!!!
+  if (scale_x) {
+    x = scale(x, center = TRUE, scale = TRUE)
+  }
   #x = scale(x, center = TRUE, scale = TRUE)
   #rm(dat)
   #x is now data-matrix

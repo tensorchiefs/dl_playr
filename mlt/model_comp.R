@@ -18,7 +18,7 @@ T_STEPS = 15000
 runs = 5
 flds = NULL
 T_OUT = 100
-nb = 15L
+nb = 8L
 len_theta = nb + 1L
 
 
@@ -41,7 +41,7 @@ history = make_hist()
 for (run in 1:runs){ #<----------------
   # run =1
   print(run)
-  d = get_data_boston()
+  d = get_data_boston(scale_x=TRUE) #
   x=d$x
   x_dim = as.integer(dim(x)[2])
   y=d$y
@@ -50,18 +50,21 @@ for (run in 1:runs){ #<----------------
  
   idx_train = flds[[run]]
   idx_test = setdiff(1:nrow(x), idx_train)
+  x_train = x[idx_train,] 
+  #x_train = x_train + rnorm(length(x_train),mean = 0,sd=0.05) #Noise
   
-  x_train1 = tf$Variable(x[idx_train,], dtype='float32')
+  x_train1 = tf$Variable(x_train, dtype='float32')
   x_test = tf$Variable(x[idx_test,], dtype='float32')
   y_train1 = tf$Variable(y[idx_train,,drop=FALSE], dtype='float32')
   y_test = tf$Variable(y[idx_test,,drop=FALSE], dtype='float32')
   
   datt = d$dat
   datt$y = y[,1]
-  debugSource('model_1.R')
+  
+  #source('model_1.R')
   #--- For the mlt (still a bit unnice)
   # uses the global variables idx_train and idx_test 
-  history = model_train(history, NULL, NULL) #Call model_train from last sourced model
+  #history = model_train(history, NULL, NULL) #Call model_train from last sourced model
 
   # rm(x,y,d) #For savety
   # source('model_2.R')
@@ -99,16 +102,19 @@ for (run in 1:runs){ #<----------------
   # print(model_test(model_6,x_test, y_test))
   
   source('model_7.R')
-  model_7 = new_model_7(len_theta = len_theta, x_dim = x_dim, y_range=s)
+  model_7 = new_model_7(len_theta = len_theta, x_dim = x_dim, y_range=s, eta_term = FALSE)
   model_7$name = 'model_7'
   history = model_train(model_7, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS) 
-  print(model_test(model_7,x_test, y_test))
   
-  for (i in 1:40){
-    ret = model_get_p_y(model_7, x_train1[i,,drop=FALSE], 0, 1, 300)
-    plot(ret$y, ret$h, main=i)
-    sum(ret$p_y)/300  
+  
+  #print(model_test(model_7,x_test, y_test))
+  
+  for (i in 1:20){
+    ret = model_get_p_y(model_7, x_train1[i,,drop=FALSE], 0, 1, 100)
+    print(paste0(i, '  ',round(sum(ret$p_y)/100,3)))
+    plot(ret$y, ret$h, main=paste0(i,' train ', round(sum(ret$p_y)/300,3)))
   }
+
 }
 
 history = history[-1,]
