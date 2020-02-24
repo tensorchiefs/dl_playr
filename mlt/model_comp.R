@@ -14,8 +14,8 @@ source("model_utils.R")
 source('data.R')
 
 
-T_STEPS = 15000
-runs = 5
+T_STEPS = 12000
+runs = 3
 flds = NULL
 T_OUT = 100
 nb = 8L
@@ -61,10 +61,10 @@ for (run in 1:runs){ #<----------------
   datt = d$dat
   datt$y = y[,1]
   
-  #source('model_1.R')
+  source('model_1.R')
   #--- For the mlt (still a bit unnice)
   # uses the global variables idx_train and idx_test 
-  #history = model_train(history, NULL, NULL) #Call model_train from last sourced model
+  history = model_train(history, NULL, NULL) #Call model_train from last sourced model
 
   # rm(x,y,d) #For savety
   # source('model_2.R')
@@ -89,30 +89,50 @@ for (run in 1:runs){ #<----------------
   # print(model_test(model_5, x_test, y_test))
   # 
   # source('model_5.R')
-  # reg_factor = 0.05
+  reg_factor = 0.05
   # model_5_reg = new_model_5(len_theta = len_theta, x_dim = x_dim, y_range=s, reg_factor = reg_factor)
   # model_5_reg$name = paste0('model_5_reg', reg_factor)
-  # history = model_train(model_5_reg, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS) 
+  # history = model_train(model_5_reg, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS)
   # print(model_test(model_5_reg,x_test, y_test))
   # 
-  # source('model_5.R')
-  # model_6 = new_model_5(len_theta = len_theta, x_dim = x_dim, y_range=s, reg_factor = reg_factor, is_theta_x = TRUE)
-  # model_6$name = paste0('model_6_reg', reg_factor)
-  # history = model_train(model_6, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS) 
-  # print(model_test(model_6,x_test, y_test))
+  source('model_5.R')
+  model_6 = new_model_5(len_theta = len_theta, x_dim = x_dim, y_range=s, reg_factor = reg_factor, is_theta_x = TRUE)
+  model_6$name = paste0('model_6_reg', reg_factor)
+  history = model_train(model_6, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS)
+  print(model_test(model_6,x_test, y_test))
+  
+  # source('model_7.R')
+  # model_7 = new_model_7(len_theta = len_theta, x_dim = x_dim, y_range=s, eta_term = TRUE, a_term = TRUE)
+  # model_7$name = 'model_7'
+  # history = model_train(model_7, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS)
+
+  # source('model_7.R')
+  # model_7 = new_model_7(len_theta = len_theta, x_dim = x_dim, y_range=s, eta_term = TRUE, a_term = TRUE,reg_factor = reg_factor)
+  # model_7$name = 'model_7_reg'
+  # history = model_train(model_7, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS)
+
+  reg_factor = 0.05
+  source('model_7.R')
+  model_7 = new_model_7(len_theta = len_theta, x_dim = x_dim, y_range=s, eta_term = TRUE, a_term = TRUE,reg_factor = reg_factor)
+  model_7$name = 'model_7_reg_0.05'
+  history = model_train(model_7, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS)
   
   source('model_7.R')
-  model_7 = new_model_7(len_theta = len_theta, x_dim = x_dim, y_range=s, eta_term = FALSE)
-  model_7$name = 'model_7'
+  model_7 = new_model_7(len_theta = len_theta, x_dim = x_dim, y_range=s, eta_term = FALSE, a_term = FALSE,reg_factor = reg_factor)
+  model_7$name = 'model_7_reg_0.05_no_3nd_flow'
   history = model_train(model_7, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS) 
+  # #print(model_test(model_7,x_test, y_test))
   
-  
-  #print(model_test(model_7,x_test, y_test))
+  source('model_7.R')
+  model_7 = new_model_7(len_theta = len_theta, x_dim = x_dim, y_range=s, eta_term = FALSE, a_term = FALSE,reg_factor = -1)
+  model_7$name = 'model_7_reg_0.00_no_3nd_flow'
+  history = model_train(model_7, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS) 
+  # #print(model_test(model_7,x_test, y_test))
   
   for (i in 1:20){
     ret = model_get_p_y(model_7, x_train1[i,,drop=FALSE], 0, 1, 100)
     print(paste0(i, '  ',round(sum(ret$p_y)/100,3)))
-    plot(ret$y, ret$h, main=paste0(i,' train ', round(sum(ret$p_y)/300,3)))
+    plot(ret$y, ret$p_y, main=paste0(i,' train ', round(sum(ret$p_y)/300,3)))
   }
 
 }

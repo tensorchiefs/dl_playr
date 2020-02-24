@@ -123,6 +123,7 @@ train_step = function(x, y, model){
     gamma_x = model_gamma(x)
     NLL = nll_model5(model$bernp, out_bern = tilde_theta_im, y = y, out_eta = beta_x, out_gamma=gamma_x, y_range = model$y_range)
     if (model$reg_factor > 0){
+      NLL = add_squarred_weights_penalty(weights=model_hy$trainable_variables, NLL=NLL, lambda=reg_factor)
       NLL = add_squarred_weights_penalty(weights=model_beta$trainable_variables, NLL=NLL, lambda=reg_factor)
       NLL = add_squarred_weights_penalty(weights=model_gamma$trainable_variables, NLL=NLL, lambda=reg_factor)  
     }
