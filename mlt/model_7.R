@@ -255,18 +255,26 @@ model_get_p_y = function(model, x, from, to, length.out){
   g = model$model_g(x)
   s = model$model_s(x)
   
+  model_a = model$model_a
+  if (!is.null(model_a)){
+    a_x = model$model_a(x)  
+  } else {
+    a_x = tf$ones_like(y_cont)
+  }
+  
+  
   y_tilde = g*y_cont - s
   y_tilde_2 = tf$math$sigmoid(y_tilde)
   theta_rep = k_tile(theta_im, c(length.out, 1))
   #print(theta_rep)
   if(is.null( model$model_beta)){
-    z = eval_h(theta_rep, y_tilde_2, beta_dist_h = bernp$beta_dist_h)
+    z =  a_x[,1] * eval_h(theta_rep, y_tilde_2, beta_dist_h = bernp$beta_dist_h)
   } else{
     beta_x = model$model_beta(x)
-    z = eval_h(theta_rep, y_tilde_2, beta_dist_h = bernp$beta_dist_h) - beta_x[,1]
+    z =  a_x[,1] * eval_h(theta_rep, y_tilde_2, beta_dist_h = bernp$beta_dist_h) - beta_x[,1]
   }
- 
-  p_y = bernp$stdnorm$prob(z) * as.array(eval_h_dash(theta_rep, y_tilde_2, beta_dist_h_dash = bernp$beta_dist_h_dash))
+  
+  p_y = bernp$stdnorm$prob(z) * as.array(a_x[,1] * eval_h_dash(theta_rep, y_tilde_2, beta_dist_h_dash = bernp$beta_dist_h_dash))
   p_y = tf$transpose(p_y * g) * tf$math$sigmoid(y_tilde) * (1.0 - tf$math$sigmoid(y_tilde))
   
   df = data.frame(
