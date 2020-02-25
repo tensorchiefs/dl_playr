@@ -1,0 +1,69 @@
+---
+title: "Keras_Tipps"
+author: "Oliver and Beate"
+date: "1/29/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Tipps to use Keras 
+
+```{r}
+library(keras)
+library(tensorflow)
+library(tfprobability)
+tf_version()
+tf_probability()
+# sessionInfo() # to see versions of all packages, also tf_probability
+```
+## Further resources
+* Webpage https://keras.rstudio.com/index.html
+* Notebooks to Manning book *Deep learning with R* https://github.com/jjallaire/deep-learning-with-r-notebooks
+* R in colab: https://colab.research.google.com/notebook#create=true&language=r in the NB
+  ```
+    install.packages("keras")
+    library(keras)
+    library(tensorflow)
+  ```
+
+### Advanced
+* Example calling python from within R: https://blogs.rstudio.com/tensorflow/posts/2019-12-10-variational-gaussian-process/
+
+## Suprises
+
+* We sometimes need to make sure that we have integers. E.g. `axis=1` gives a strange error message, because `1` is assigned to a numeric in R not an integer
+
+* Axis are zero bases
+```{r}
+x = k_variable(matrix(rnorm(rep(0,3*4)),nrow = 3, ncol=4), dtype = 'float32')
+#tf$reduce_mean(x,axis=1) #Does not work: NotFoundError: Could not find valid device for node
+tf$reduce_mean(x,axis=0L) #Axis are zero based
+str(1)
+str(1L)
+```
+
+## Getting data to Keras (simple)
+
+In the eager guide: https://keras.rstudio.com/articles/eager_guide.html they suggest to use tfdatasets. Probably better if you feed larger data (see later)
+```{r}
+(x = matrix(rnorm(rep(0,3*4)),nrow = 3, ncol=4))
+(kc  = k_constant(x)) # turns x to tensor (not trainable)
+(kt = k_variable(x))  # turns x to tf.variable (traninable)
+(ka = keras_array(x) )  # turns x to numpy-style array
+class(ka) #"numpy.ndarray"
+```
+
+## Getting data from Keras
+
+In the eager mode
+```{r}
+(km=kt$numpy())  # turns the tf.variable kt to a matrix
+```
+
+
+
+
+
