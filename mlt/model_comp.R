@@ -15,7 +15,7 @@ source('data.R')
 
 
 T_STEPS = 12000
-runs = 3
+runs = 5
 flds = NULL
 T_OUT = 100
 nb = 8L
