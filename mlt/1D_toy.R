@@ -81,7 +81,7 @@ xy_dat = get_data_0x()
 xy_dat = get_data_nx() 
 xy_dat = get_data_lin(sigma = 0.01)
 xy_dat = get_data_2l()
-#xy_dat = get_data_sin()
+xy_dat = get_data_sin()
 
 
 
@@ -141,10 +141,10 @@ T_OUT = 100
 run = 1
 history = make_hist()
 
-source('model_7.R')
-model_7 = new_model_7(len_theta = len_theta, x_dim = 1, y_range=1, eta_term = TRUE, a_term = TRUE)
-model_7$name = 'model_7_with3rd'
-history = model_train(model_7, history, xx, yy,xx, yy, T_STEPS = 15000) 
+# source('model_7.R')
+# model_7 = new_model_7(len_theta = len_theta, x_dim = 1, y_range=1, eta_term = TRUE, a_term = TRUE)
+# model_7$name = 'model_7_with3rd'
+# history = model_train(model_7, history, xx, yy,xx, yy, T_STEPS = 15000) 
 
 source('model_7.R')
 model_7_wo = new_model_7(len_theta = len_theta, x_dim = 1, y_range=1, eta_term = FALSE, a_term = FALSE)
@@ -169,8 +169,10 @@ for (i in c(n*0.01,n*0.25,n*0.5)){
   NLLS = NLLS + NLL
   int_steps = 500 #Steps for the integration
   
-  ret = model_get_p_y(model_7, xx[i,,drop=FALSE], -0.2, 1.0, int_steps)
-  print(paste0(i, '  ',round(sum(ret$p_y)/(int_steps/1.0),3)))
+  y_start = -0.2
+  y_end = 1.0
+  ret = model_get_p_y(model_7, xx[i,,drop=FALSE], y_start, y_end, int_steps)
+  print(paste0(i, '  ',round(sum(ret$p_y)/(int_steps/(y_end - y_start)),3)))
   f = ret$p_y
   #lines(strech*f+x[i],ret$y,col='red')
   lines(strech*f+x[i],ret$y,col='black')
@@ -201,7 +203,7 @@ for (i in c(n*0.01,n*0.25,n*0.5)){
     points(x, tf$sigmoid(y*as.numeric(model_7$model_g(xx))-as.numeric(model_7$model_s(xx))), col='lightgreen')
   }
   
-  if (FALSE){
+  if (TRUE){
     f = get_data_sin_dist(x[i], ret$y)
     lines(strech*f+x[i],ret$y, lty=1, col='green')
   }
