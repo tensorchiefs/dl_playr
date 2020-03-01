@@ -1,4 +1,4 @@
-rm(list=ls())
+#rm(list=ls())
 library(MASS)
 library(ggplot2)
 library(mlt)
@@ -13,25 +13,34 @@ source('bern_utils.R')
 source("model_utils.R")
 source('data.R')
 
+get_data = get_data_boston
+get_data = get_data_proteins
 
-T_STEPS = 12000
-runs = 5
+
+data_name = 'protein'
+
+SCALE = TRUE
+T_STEPS = 15000
+bs = 128L
 flds = NULL
-T_OUT = 100
+runs = 5
+T_OUT = 500
 nb = 8L
 len_theta = nb + 1L
 
 
 # Creation of folds ###
 #
-if (is.null(flds)) {
+if (is.null(flds)) { 
   require(caret)
   set.seed(42)
-  d = get_data_boston()
+  #d = get_data_boston()
+  d = get_data()
+  N = nrow(d$x)
   # create list with k entries, each holding the indices of the train data in the kth fold
   flds <- createFolds(d$y, k = runs, list = TRUE, returnTrain = TRUE)  
   # save the list with indices
-  save(x=flds, file=paste0('./runs/boston_',runs,'_folds.rdata'))
+  save(x=flds, file=paste0('./runs/' , data_name, '_runs_', runs, '.rdata'))
 }
 
 #Main Loop############ 
@@ -41,30 +50,34 @@ history = make_hist()
 for (run in 1:runs){ #<----------------
   # run =1
   print(run)
-  d = get_data_boston(scale_x=TRUE) #
+  
+  idx_train = flds[[run]]
+  idx_test = setdiff(1:N, idx_train)
+  
+  d = get_data(scale_x=SCALE, idx_train) #
   x=d$x
   x_dim = as.integer(dim(x)[2])
   y=d$y
   s=d$scale
   
  
-  idx_train = flds[[run]]
-  idx_test = setdiff(1:nrow(x), idx_train)
   x_train = x[idx_train,] 
   #x_train = x_train + rnorm(length(x_train),mean = 0,sd=0.05) #Noise
-  
+  class(x_train);dim(x_train)
   x_train1 = tf$Variable(x_train, dtype='float32')
   x_test = tf$Variable(x[idx_test,], dtype='float32')
   y_train1 = tf$Variable(y[idx_train,,drop=FALSE], dtype='float32')
   y_test = tf$Variable(y[idx_test,,drop=FALSE], dtype='float32')
   
+  print(paste0('training ', x_train1$shape, ' testing ', x_test$shape))
+  
   datt = d$dat
   datt$y = y[,1]
   
-  source('model_1.R')
-  #--- For the mlt (still a bit unnice)
-  # uses the global variables idx_train and idx_test 
-  history = model_train(history, NULL, NULL) #Call model_train from last sourced model
+  # source('model_1.R')
+  # #--- For the mlt (still a bit unnice)
+  # # uses the global variables idx_train and idx_test 
+  # history = model_train(history, NULL, NULL) #Call model_train from last sourced model
 
   # rm(x,y,d) #For savety
   # source('model_2.R')
@@ -95,38 +108,50 @@ for (run in 1:runs){ #<----------------
   # history = model_train(model_5_reg, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS)
   # print(model_test(model_5_reg,x_test, y_test))
   # 
-  source('model_5.R')
-  model_6 = new_model_5(len_theta = len_theta, x_dim = x_dim, y_range=s, reg_factor = reg_factor, is_theta_x = TRUE)
-  model_6$name = paste0('model_6_reg', reg_factor)
-  history = model_train(model_6, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS)
-  print(model_test(model_6,x_test, y_test))
-  
+  # source('model_5.R')
+  # model_6 = new_model_5(len_theta = len_theta, x_dim = x_dim, y_range=s, reg_factor = reg_factor, is_theta_x = TRUE)
+  # model_6$name = paste0('model_6_reg', reg_factor)
+  # history = model_train(model_6, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS)
+  # print(model_test(model_6,x_test, y_test))
+  # 
   # source('model_7.R')
-  # model_7 = new_model_7(len_theta = len_theta, x_dim = x_dim, y_range=s, eta_term = TRUE, a_term = TRUE)
+  # model_7 = new_model_7(len_theta = len_theta, x_dim = x_dim, y_range=s, eta_term = TRUE, a_term = TRUE, bs = bs)
   # model_7$name = 'model_7'
   # history = model_train(model_7, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS)
 
   # source('model_7.R')
-  # model_7 = new_model_7(len_theta = len_theta, x_dim = x_dim, y_range=s, eta_term = TRUE, a_term = TRUE,reg_factor = reg_factor)
+  # model_7 = new_model_7(len_theta = len_theta, x_dim = x_dim, y_range=s, eta_term = TRUE, a_term = TRUE,reg_factor = reg_factor, bs = bs)
   # model_7$name = 'model_7_reg'
   # history = model_train(model_7, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS)
 
-  reg_factor = 0.05
+  # reg_factor = 0.05
+  # source('model_7.R')
+  # model_7 = new_model_7(len_theta = len_theta, x_dim = x_dim, y_range=s, eta_term = TRUE, a_term = TRUE,reg_factor = reg_factor, bs = bs)
+  # model_7$name = 'model_7_reg_0.05'
+  # history = model_train(model_7, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS)
+  # 
+  # source('model_7.R')
+  # model_7 = new_model_7(len_theta = len_theta, x_dim = x_dim, y_range=s, eta_term = FALSE, a_term = FALSE,reg_factor = reg_factor, bs = bs)
+  # model_7$name = 'model_7_reg_0.05_no_3nd_flow'
+  # history = model_train(model_7, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS) 
+  # # #print(model_test(model_7,x_test, y_test))
+  # 
+  # source('model_7.R')
+  # model_7 = new_model_7(len_theta = len_theta, x_dim = x_dim, y_range=s, eta_term = FALSE, a_term = FALSE,reg_factor = -1, bs = bs)
+  # model_7$name = 'model_7_reg_0.00_no_3nd_flow'
+  # history = model_train(model_7, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS)
+  # # #print(model_test(model_7,x_test, y_test))
+  # 
   source('model_7.R')
-  model_7 = new_model_7(len_theta = len_theta, x_dim = x_dim, y_range=s, eta_term = TRUE, a_term = TRUE,reg_factor = reg_factor)
-  model_7$name = 'model_7_reg_0.05'
+  model_7 = new_model_7(len_theta = len_theta, x_dim = x_dim, y_range=s, eta_term = TRUE, a_term = TRUE,reg_factor = -1, bs = bs)
+  model_7$name = 'model_7_reg_0.00'
   history = model_train(model_7, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS)
+  #print(model_test(model_7,x_test, y_test))
   
-  source('model_7.R')
-  model_7 = new_model_7(len_theta = len_theta, x_dim = x_dim, y_range=s, eta_term = FALSE, a_term = FALSE,reg_factor = reg_factor)
-  model_7$name = 'model_7_reg_0.05_no_3nd_flow'
-  history = model_train(model_7, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS) 
-  # #print(model_test(model_7,x_test, y_test))
-  
-  source('model_7.R')
-  model_7 = new_model_7(len_theta = len_theta, x_dim = x_dim, y_range=s, eta_term = FALSE, a_term = FALSE,reg_factor = -1)
-  model_7$name = 'model_7_reg_0.00_no_3nd_flow'
-  history = model_train(model_7, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS) 
+  #source('model_7.R')
+  # model_7 = new_model_7(len_theta = len_theta, x_dim = x_dim, y_range=s, bs=bs, eta_term = TRUE, a_term = TRUE,reg_factor = 0.0)
+  # model_7$name = 'model_7_reg_0.0'
+  # history = model_train(model_7, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS) 
   # #print(model_test(model_7,x_test, y_test))
   
   for (i in 1:20){

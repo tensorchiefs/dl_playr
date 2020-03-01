@@ -1,7 +1,8 @@
 # #### Model 1
-fm = (y ~ crim + zn + indus + chas + nox + rm + age + dis + rad + tax + ptratio + b + lstat)
+#fm = (y ~ crim + zn + indus + chas + nox + rm + age + dis + rad + tax + ptratio + b + lstat)
 #fm = (y ~ rm + lstat + indus + chas + nox + rm + age + dis )
-#fm = (y ~ rm  )
+#
+#fm = (y ~ V1 + V2 + V3 + V4 + V5 + V6 + V7 + V8 + V9)
 
 var_y <- numeric_var("y", support = c(0, 1), bounds = c(-Inf, Inf), add = c(-2,2))
 bb <- Bernstein_basis(var_y, order=nb, ui="increasing")

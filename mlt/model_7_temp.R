@@ -196,7 +196,6 @@ train_step_au = tf_function(train_step)
 model_train = function(model, history, x_train, y_train, x_test, y_test,save_model = FALSE, T_STEPS){
   start_time = Sys.time()
   bs = model$bs
-  print(paste0('Training model 7 traing ',x_train$shape, ' testing ', x_test$shape, ' ',bs))
   for (r in 1:T_STEPS){
     #idx_batch = sample(start_index:(length(y_train)-1+start_index), bs)
     if (bs > 0){

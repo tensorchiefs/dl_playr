@@ -52,7 +52,7 @@ In the eager guide: https://keras.rstudio.com/articles/eager_guide.html they sug
 (x = matrix(rnorm(rep(0,3*4)),nrow = 3, ncol=4))
 (kc  = k_constant(x)) # turns x to tensor (not trainable)
 (kt = k_variable(x))  # turns x to tf.variable (traninable)
-(ka = keras_array(x) )  # turns x to numpy-style array
+(ka = keras_array(x, dtype='float32') )  # turns x to numpy array with can be used in TF
 class(ka) #"numpy.ndarray"
 ```
 
@@ -63,6 +63,7 @@ In the eager mode
 (km=kt$numpy())  # turns the tf.variable kt to a matrix
 ```
 
+## C
 
 
 

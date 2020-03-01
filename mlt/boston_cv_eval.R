@@ -20,7 +20,27 @@ h$fold = as.factor(h$fold)
 hh =h[!is.na(h$loss),] 
 
 ggplot(hh, aes(x=step,y=loss, color=sample, linetype=fold)) +
-geom_hline(yintercept=2.5)+  geom_line() + ylim(2,4) + facet_grid(. ~ method)
-ggsave('boston_cv_eval_12000.pdf', width = 14, height = 7)
+geom_hline(yintercept=2.48)+  geom_line()  + ylim(2.2,3.2) + facet_grid(. ~ method)
+ggsave('boston_cv_eval_12000_5fold.pdf', width = 14, height = 7)
 
+library(dplyr)
+#dd = hh %>% filter(step == 12000) %>% filter(sample == 'nll_test') 
+ddd = history %>% filter(step == 71000)
+mean(ddd$nll_test) 
+sd(ddd$nll_test) / sqrt(5)
+
+
+if (FALSE){
+  history = history[2:nrow(history),]
+  ggplot(history) + ylim(-2, 2) + geom_line(aes(x = step, y=nll_test, col=method))
+}
+
+if (FALSE){
+  #Wrong naming in third run (should be model_7_reg_0.05)
+  history[201:300,'method'] = 'model_7_reg_0.05'
+  history[501:600,'method'] = 'model_7_reg_0.05'
+  history[801:900,'method'] = 'model_7_reg_0.05'
+  history[1101:1200,'method'] = 'model_7_reg_0.05'
+  history[1401:1500,'method'] = 'model_7_reg_0.05'
+}
 
