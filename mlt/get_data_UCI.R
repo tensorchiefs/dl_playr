@@ -43,5 +43,24 @@ get_data_protein = function(path, split_num=0, spatz = 0.05) {
   ret$name = name
   return (ret)
 }
+
+get_data_concrete = function(path, split_num=0, spatz = 0.05) {
+  name = 'concrete'
+  ret = load_data(path, split_num, spatz)
+  ret$name = name
+  return (ret)
+}
+
+get_data_energy = function(path, split_num=0, spatz = 0.05) {
+  name = 'energy'
+  ret = load_data(path, split_num, spatz)
+  ret$name = name
+  return (ret)
+}
+
+
+
+
+
   
   
