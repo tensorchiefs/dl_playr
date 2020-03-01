@@ -13,19 +13,24 @@ source('bern_utils.R')
 source("model_utils.R")
 source('get_data_UCI.R')
 
+
+offset_beate  = "c:/Users/sick/dl Dropbox/beate sick/IDP_Projekte/DL_Projekte/shared_Oliver_Beate/mlt/UCI_Datasets/"
+
+offset = offset_beate
+
 get_data = get_data_boston
-path = '/Users/oli/Dropbox/__ZHAW/__Projekte_Post_ZHAH/shared_Oliver_Beate/mlt/UCI_Datasets/bostonHousing/'
+path = paste(offset, 'bostonHousing/', sep="")
 
 get_data = get_data_protein
-path = '/Users/oli/Dropbox/__ZHAW/__Projekte_Post_ZHAH/shared_Oliver_Beate/mlt/UCI_Datasets/protein-tertiary-structure/'
+path = paste(offset, 'protein-tertiary-structure/', sep="")
 
 #get_data = get_data_proteins
 #ret = get_data(path = '/Users/oli/Dropbox/__ZHAW/__Projekte_Post_ZHAH/shared_Oliver_Beate/mlt/UCI_Datasets/bostonHousing/')
 #ret = get_data(path = '/Users/oli/Dropbox/__ZHAW/__Projekte_Post_ZHAH/shared_Oliver_Beate/mlt/UCI_Datasets/protein-tertiary-structure/')
 
 SCALE = TRUE
-reg_factor = 0.05 #Boston 0.05 Protein 0
-T_STEPS = 500 #w.r.t Batchsize Protein 75000, Boston 50000
+reg_factor = 0.0 #Boston 0.05 Protein 0
+T_STEPS = 5000 #w.r.t Batchsize Protein 75000, Boston 50000
 bs = 128L
 flds = NULL
 runs = 5
