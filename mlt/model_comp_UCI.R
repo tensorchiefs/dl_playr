@@ -18,20 +18,21 @@ offset_beate  = "c:/Users/sick/dl Dropbox/beate sick/IDP_Projekte/DL_Projekte/sh
 
 offset = offset_beate
 
-get_data = get_data_boston
-path = paste(offset, 'bostonHousing/', sep="")
 
 get_data = get_data_protein
 path = paste(offset, 'protein-tertiary-structure/', sep="")
+
+get_data = get_data_boston
+path = paste(offset, 'bostonHousing/', sep="")
 
 #get_data = get_data_proteins
 #ret = get_data(path = '/Users/oli/Dropbox/__ZHAW/__Projekte_Post_ZHAH/shared_Oliver_Beate/mlt/UCI_Datasets/bostonHousing/')
 #ret = get_data(path = '/Users/oli/Dropbox/__ZHAW/__Projekte_Post_ZHAH/shared_Oliver_Beate/mlt/UCI_Datasets/protein-tertiary-structure/')
 
 SCALE = TRUE
-reg_factor = 0.0 #Boston 0.05 Protein 0
-T_STEPS = 5000 #w.r.t Batchsize Protein 75000, Boston 50000
-bs = 128L
+reg_factor = 0.05 #Boston 0.05 Protein 0
+T_STEPS = 15000 #w.r.t Batchsize Protein 75000, Boston 50000
+bs = -1  # boston -1, protein 128L
 flds = NULL
 runs = 5
 T_OUT = 100
@@ -44,7 +45,8 @@ len_theta = nb + 1L
 history = make_hist()
 ret = get_data(path)
 runs = ret$runs
-for (run in 1:runs){ #<----------------
+for (run in 1:2 ){   # !!!!!!!!!! change
+#for (run in 1:runs){ #<----------------
   # run =1
   ret = get_data(path, split_num=run, spatz = 0.05)
     
@@ -58,7 +60,7 @@ for (run in 1:runs){ #<----------------
   
   source('model_7.R')
   x_dim = ncol(x_test)
-  model_7 = new_model_7(len_theta = len_theta, x_dim = x_dim, y_range=ret$scale, eta_term = TRUE, a_term = TRUE,reg_factor = -1, bs = bs)
+  model_7 = new_model_7(len_theta = len_theta, x_dim = x_dim, y_range=ret$scale, eta_term = TRUE, a_term = TRUE,reg_factor = reg_factor, bs = bs)
   model_7$name = paste0('model_7_reg_',reg_factor, '_', ret$name)
   history = model_train(model_7, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS)
   
