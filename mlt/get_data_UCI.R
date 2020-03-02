@@ -5,7 +5,6 @@ u_scale = function (col, min_col, max_col){
 col_scale <- function(col_train, spatz=0.05, col_test) {
   max_col = max(col_train) * (1 + spatz)
   min_col = min(col_train) * (1 - spatz)
-  scale = max_col - min_col
   col_train = u_scale(col_train, min_col=min_col, max_col=max_col)
   col_test = u_scale(col_test, min_col=min_col, max_col=max_col)
   return (list(col_train=col_train, col_test=col_test))
@@ -34,6 +33,7 @@ load_data = function(path, split_num=0, spatz = 0.05, x_scale =TRUE) {
   y_s2 = col_scale(col_train=y_train, spatz=0.05, col_test=y_test)
   y_train = y_s2$col_train
   y_test = y_s2$col_test
+  scale = max(y_train) - min(y_train)
   
   if(x_scale==TRUE){
     X_train=as.matrix(X_train) # also in case of 1 x
@@ -61,6 +61,7 @@ get_data_protein = function(path, split_num=0, spatz = 0.05) {
   return (ret)
 }
 
+
 get_data_concrete = function(path, split_num=0, spatz = 0.05) {
   name = 'concrete'
   ret = load_data(path, split_num, spatz)
@@ -75,30 +76,6 @@ get_data_energy = function(path, split_num=0, spatz = 0.05) {
   return (ret)
 }
 
-
-##### the "old" get_data function (before protocol)
-## Data set
-get_data = function () {
-  data("BostonHousing2", package = "mlbench")
-  dat=BostonHousing2
-  #str(dat)  #506 obs. of  19 variables
-  names(dat)
-  scale = max(dat$medv) - min(dat$medv)
-  dat$cmedv = NULL #Remove second version of 
-  #dat$y_obs = dat$medv
-  dat$y = utils_scale(dat$medv)
-  dat$medv = NULL
-  names(dat)
-  y = as.matrix(dat$y)
-  x = as.matrix(dat[,5:ncol(dat)]) #<------ Here ist y dabei!!!!!!!
-  datx = dat[,5:(ncol(dat)-1)]
-  print(paste0('Names in X : ',names(datx)))
-  x = as.matrix(datx) #<------ Here ist y dabei gewesen!!!!
-  #rm(dat)
-  #x is now data-matrix
-  #y is repsone matrix
-  return (list(x=x,y=y,dat=dat,scale=scale))
-}
 
 
 
