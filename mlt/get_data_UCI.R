@@ -70,7 +70,7 @@ get_data_protein = function(path, split_num=0, spatz = 0.05, x_scale =FALSE) {
 
 get_data_concrete = function(path, split_num=0, spatz = 0.05, x_scale =FALSE) {
   name = 'concrete'
-  ret = load_data(path, split_num, spatz)
+  ret = load_data(path, split_num, spatz, x_scale)
   ret$name = name
   return (ret)
 }

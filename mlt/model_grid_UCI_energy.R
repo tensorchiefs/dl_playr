@@ -32,23 +32,23 @@ str(ret)
 
 SCALE = TRUE
 reg_factor = 0.0 #Boston 0.05 Protein 0
-T_STEPS = 8000 #w.r.t Batchsize Protein 75000, Boston 50000
+T_STEPS = 12000 #w.r.t Batchsize Protein 75000, Boston 50000
 bs = -1 # boston -1, protein 128L, energy -1
 flds = NULL
 #runs = 5
 T_OUT = 100 # war auf 500 (zu hoch?)
-nb = 8L
+nb = 10L
 len_theta = nb + 1L
 spatz = 0.0
 x_scale = FALSE
 
-# grid_reg_factor = c(0.0, 0.03, 0.05, 0.5)
-# grid_spatz= c(0.0, 0.01, 0.05)
-# grid_x_scale = c(FALSE, TRUE)
-
-grid_reg_factor = c(0.0, 0.03, 0.05)
-grid_spatz= c(0.0, 0.02)
+grid_reg_factor = c(0.0, 0.03, 0.05, 0.5)
+grid_spatz= c(0.0, 0.01, 0.05)
 grid_x_scale = c(FALSE, TRUE)
+
+# grid_reg_factor = c(0.0, 0.03, 0.05)
+# grid_spatz= c(0.0, 0.02)
+# grid_x_scale = c(FALSE, TRUE)
 
 hist_grid= make_hist_grid()
 history = make_hist()
@@ -63,8 +63,8 @@ for (x_scale in grid_x_scale){        # grid loop
 for (spatz in grid_spatz){            # grid loop 
 for (reg_factor in grid_reg_factor){  # grid loop 
   # reg_factor = reg_factor[1]
-  for (run in 1:3 ){   # !!!!!!!!!! only for fast test
-#  for (run in 1:runs){ # loop over folds (=runs = splits)
+#  for (run in 1:min(4,runs) ){   # !! only for fast test
+  for (run in 1:runs){ # loop over folds (=runs = splits)
     # run =1
     ret = get_data(path, split_num=run, spatz = spatz, x_scale=x_scale)
     train_x = ret$X_train
