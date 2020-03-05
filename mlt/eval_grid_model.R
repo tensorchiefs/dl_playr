@@ -1,7 +1,7 @@
 if (TRUE){
   hist_1 = history
-  hist_select = "c:/Users/sick/dl Dropbox/beate sick/IDP_Projekte/DL_Projekte/shared_Oliver_Beate/mlt/UCI_Datasets/bostonHousing/2020-03-0436.797_grid_search/history_6000.Rdata"
-  path_result = "c:/Users/sick/dl Dropbox/beate sick/IDP_Projekte/DL_Projekte/shared_Oliver_Beate/mlt/UCI_Datasets/bostonHousing/2020-03-0436.797_grid_search/"
+  hist_select = "c:/Users/sick/dl Dropbox/beate sick/IDP_Projekte/DL_Projekte/shared_Oliver_Beate/mlt/UCI_Datasets/protein-tertiary-structure/2020-03-0531.854_grid_search/history_8000.Rdata"
+  path_result = "c:/Users/sick/dl Dropbox/beate sick/IDP_Projekte/DL_Projekte/shared_Oliver_Beate/mlt/UCI_Datasets/protein-tertiary-structure/2020-03-0531.854_grid_search/"
   load(hist_select)
 }
 
@@ -9,8 +9,10 @@ library(ggplot2)
 
 history = hist_grid
 str(history)
+history = history[,-7]
 summary(history)
   
+
 
 library(tidyr)
 h = gather(history, 'sample', 'loss', nll_train:nll_test)

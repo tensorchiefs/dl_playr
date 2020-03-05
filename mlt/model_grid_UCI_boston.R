@@ -32,7 +32,7 @@ str(ret)
 
 SCALE = TRUE
 reg_factor = 0.0 #Boston 0.05 Protein 0
-T_STEPS = 12000 #w.r.t Batchsize Protein 75000, Boston 50000
+T_STEPS = 8000 #12000 #w.r.t Batchsize Protein 75000, Boston 50000
 bs = -1 # boston -1, protein 128L, energy -1
 flds = NULL
 #runs = 5
@@ -42,29 +42,35 @@ len_theta = nb + 1L
 spatz = 0.0
 x_scale = FALSE
 
-grid_reg_factor = c(0.0, 0.03, 0.05, 0.5)
-grid_spatz= c(0.0, 0.01, 0.05)
-grid_x_scale = c(FALSE, TRUE)
-
-# grid_reg_factor = c(0.0, 0.03, 0.05)
-# grid_spatz= c(0.0, 0.02)
+# grid_reg_factor = c(0.0, 0.03, 0.05, 0.5)
+# grid_spatz= c(0.0, 0.01, 0.05)
 # grid_x_scale = c(FALSE, TRUE)
+
+grid_reg_factor = c(0.0, 0.03)
+grid_spatz= c(0.0, 0.05)
+grid_x_scale = c(FALSE, TRUE)
 
 hist_grid= make_hist_grid()
 history = make_hist()
 
+runs = runs
+runs =5  #  !! nur zum testen klein setzen
 ## !!!! warning: must have inverted order then for-loop below !!
-param_matrix = expand.grid(out=1:floor(T_STEPS/T_OUT),
+param_matrix = expand.grid(no_step=1:floor(T_STEPS/T_OUT),
+                           no_fold=1:runs,
                            regularization=grid_reg_factor, 
                            spatz=grid_spatz,
                            x_scale=grid_x_scale)
+( k_max = nrow(param_matrix) )
 
+k=1
 for (x_scale in grid_x_scale){        # grid loop 
 for (spatz in grid_spatz){            # grid loop 
 for (reg_factor in grid_reg_factor){  # grid loop 
+  print(paste0("durchgang hyperparameter-kombi k :" , k, "von :" , k_max ))
+  k=k+1
   # reg_factor = reg_factor[1]
-#  for (run in 1:min(4,runs) ){   # !! only for fast test
-  for (run in 1:runs){ # loop over folds (=runs = splits)
+   for (run in 1:runs){ # loop over folds (=runs = splits)
     # run =1
     ret = get_data(path, split_num=run, spatz = spatz, x_scale=x_scale)
     train_x = ret$X_train
@@ -73,7 +79,7 @@ for (reg_factor in grid_reg_factor){  # grid loop
     train_y= ret$y_train
     y_train = train_y[1:round(0.8*nrow(train_x))]
     y_val = train_y[(round(0.8*nrow(train_x))+1):nrow(train_x)]
-    print(paste0("Run ", run, ' from ', runs))
+    print(paste0("fold" , run, ' from ', runs))
     x_train1 = tf$Variable(x_train, dtype='float32')
     x_test = tf$Variable(x_val, dtype='float32')
     y_train1 = tf$reshape(tf$Variable(y_train, dtype='float32'), c(-1L,1L))
@@ -87,18 +93,20 @@ for (reg_factor in grid_reg_factor){  # grid loop
                           eta_term = TRUE, a_term = TRUE,reg_factor = reg_factor, bs = bs)
     model_7$name = paste0('model_7_', ret$name)
     history = model_train(model_7, history, x_train1, y_train1,x_test, y_test, T_STEPS = T_STEPS)
-
+    print('dim(history) :')
+    print(dim(history))
     for (i in 1:20){
       ret = model_get_p_y(model_7, x_train1[i,,drop=FALSE], 0, 1, 100)
-      print(paste0(i, '  ',round(sum(ret$p_y)/100,3)))
+      #print(paste0(i, '  ',round(sum(ret$p_y)/100,3)))
       plot(ret$y, ret$p_y, main=paste0(i,' train ', round(sum(ret$p_y)/300,3)))
     }
   }
 }}} # close grid loops
-  
-history = cbind(history, param_matrix)  
 
- # hist_grid =  hist_grid_cp
+
+history = cbind(history[-1,], param_matrix)  
+hist_grid = history
+str(hist_grid)
  
  ind <- apply(hist_grid, 1, function(x) any(is.na(x)))
  hist_grid <- hist_grid[ !ind, ]
