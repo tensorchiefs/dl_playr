@@ -17,14 +17,14 @@ source('get_data_UCI.R')
 offset_beate  = "c:/Users/sick/dl Dropbox/beate sick/IDP_Projekte/DL_Projekte/shared_Oliver_Beate/mlt/UCI_Datasets/"
 offset = offset_beate
 
-get_data = get_data_protein
-path = paste(offset, 'protein-tertiary-structure/', sep="")
+# get_data = get_data_protein
+# path = paste(offset, 'protein-tertiary-structure/', sep="")
 
 # get_data = get_data_boston
 # path = paste(offset, 'bostonHousing/', sep="")
 
-# get_data = get_data_energy
-# path = paste(offset, 'energy/', sep="")
+get_data = get_data_concrete
+path = paste(offset, 'concrete/', sep="")
 
 ret = get_data(path)
 str(ret)
@@ -32,8 +32,8 @@ str(ret)
 
 SCALE = TRUE
 reg_factor = 0.0 #Boston 0.05 Protein 0
-T_STEPS = 12000 #12000 #w.r.t Batchsize Protein 75000, Boston 50000
-bs = 256L # boston -1, protein 128L, energy -1
+T_STEPS = 9000 #12000 #w.r.t Batchsize Protein 75000, Boston 50000
+bs = -1 # boston -1, protein 128L, energy -1, concrete -1
 flds = NULL
 #runs = 5
 T_OUT = 100 # war auf 500 (zu hoch?)
@@ -42,7 +42,7 @@ len_theta = nb + 1L
 spatz = 0.0
 x_scale = FALSE
 
-# grid_reg_factor = c(0.0, 0.03, 0.05, 0.5)
+# grid_reg_factor = c(0.0, 0.025, 0.05)
 # grid_spatz= c(0.0, 0.01, 0.05)
 # grid_x_scale = c(FALSE, TRUE)
 
@@ -54,7 +54,7 @@ hist_grid= make_hist_grid()
 history = make_hist()
 
 runs = runs
-#runs =5  #  !! nur zum testen klein setzen
+runs = min(6,runs)  #  !! nur zum testen klein setzen
 ## !!!! warning: must have inverted order then for-loop below !!
 param_matrix = expand.grid(no_step=1:floor(T_STEPS/T_OUT),
                            no_fold=1:runs,

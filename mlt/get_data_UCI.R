@@ -82,6 +82,41 @@ get_data_energy = function(path, split_num=0, spatz = 0.05, x_scale =FALSE) {
   return (ret)
 }
 
+get_data_kin8nm = function(path, split_num=0, spatz = 0.05, x_scale =FALSE) {
+  name = 'kin8nm'
+  ret = load_data(path, split_num, spatz, x_scale)
+  ret$name = name
+  return (ret)
+}
+
+get_data_yacht = function(path, split_num=0, spatz = 0.05, x_scale =FALSE) {
+  name = 'yacht'
+  ret = load_data(path, split_num, spatz, x_scale)
+  ret$name = name
+  return (ret)
+}
+
+get_data_wine-quality-red = function(path, split_num=0, spatz = 0.05, x_scale =FALSE) {
+  name = 'wine-quality-red'
+  ret = load_data(path, split_num, spatz, x_scale)
+  ret$name = name
+  return (ret)
+}
+
+get_data_power-plant = function(path, split_num=0, spatz = 0.05, x_scale =FALSE) {
+  name = 'power-plant'
+  ret = load_data(path, split_num, spatz, x_scale)
+  ret$name = name
+  return (ret)
+}
+
+get_data_naval-propulsion-plant = function(path, split_num=0, spatz = 0.05, x_scale =FALSE) {
+  name = 'naval-propulsion-plant'
+  ret = load_data(path, split_num, spatz, x_scale)
+  ret$name = name
+  return (ret)
+}
+
 
 
 
