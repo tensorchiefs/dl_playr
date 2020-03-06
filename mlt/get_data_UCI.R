@@ -1,13 +1,13 @@
-u_scale = function (col, min_col, max_col){
-  return ( (col-min_col)/(max_col-min_col) )
+u_scale = function (col, min_col, max_col, eps=0.0){
+  return ( (col-min_col)/(eps+max_col-min_col) )
 }
 
-col_scale <- function(col_train, spatz=0.05, col_test) {
+col_scale <- function(col_train, spatz=0.05, col_test, eps=0.0) {
   # use only train to determine scale-parameter
   max_col = max(col_train) * (1 + spatz)
   min_col = min(col_train) * (1 - spatz)
-  col_train = u_scale(col_train, min_col=min_col, max_col=max_col)
-  col_test = u_scale(col_test, min_col=min_col, max_col=max_col)
+  col_train = u_scale(col_train, min_col=min_col, max_col=max_col,eps)
+  col_test = u_scale(col_test, min_col=min_col, max_col=max_col,eps)
   return (list(col_train=col_train, col_test=col_test))
 }
 
@@ -17,7 +17,7 @@ col_scale <- function(col_train, spatz=0.05, col_test) {
 #   return (y_scale * (max_y - min_y) + min_y)
 # }
 
-load_data = function(path, split_num=0, spatz = 0.05, x_scale =TRUE) {
+load_data = function(path, split_num=0, spatz = 0.05, x_scale =TRUE,eps=0) {
   idx_train = read.table(paste0(path, '/data/index_train_', split_num, '.txt')  ) + 1 #We are R-Based
   idx_test = read.table(paste0(path, '/data/index_test_', split_num, '.txt')  ) + 1 #We are R-Based
   y_col = read.table(paste0(path, '/data/index_target.txt')  )  + 1
@@ -43,7 +43,7 @@ load_data = function(path, split_num=0, spatz = 0.05, x_scale =TRUE) {
     X_train=as.matrix(X_train) # also in case of 1 x
     for( i in 1:ncol(X_train)){
       # normalize x_train and x_test based x_train values
-      X_s2 = col_scale(col_train=X_train[,i], spatz=0, col_test=X_test[,i])
+      X_s2 = col_scale(col_train=X_train[,i], spatz=0, col_test=X_test[,i],eps)
       X_train[,i] = X_s2$col_train
       X_test[,i] = X_s2$col_test
       }
@@ -112,7 +112,7 @@ get_data_power = function(path, split_num=0, spatz = 0.05, x_scale =FALSE) {
 
 get_data_naval = function(path, split_num=0, spatz = 0.05, x_scale =FALSE) {
   name = 'naval-propulsion-plant'
-  ret = load_data(path, split_num, spatz, x_scale)
+  ret = load_data(path, split_num, spatz, x_scale,eps=1e-6)
   ret$name = name
   return (ret)
 }
