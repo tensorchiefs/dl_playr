@@ -1,7 +1,9 @@
-if (TRUE){
+if (FALSE){
   hist_1 = history
-  hist_select = "c:/Users/sick/dl Dropbox/beate sick/IDP_Projekte/DL_Projekte/shared_Oliver_Beate/mlt/UCI_Datasets/kin8nm/2020-03-0624.986_grid_search/history_9000.Rdata"
-  path_result = "c:/Users/sick/dl Dropbox/beate sick/IDP_Projekte/DL_Projekte/shared_Oliver_Beate/mlt/UCI_Datasets/kin8nm/2020-03-0624.986_grid_search/"
+  hist_select = "/Users/oli/Dropbox/__ZHAW/__Projekte_Post_ZHAH/shared_Oliver_Beate/mlt/UCI_Datasets/power-plant/2020-03-0630.861_grid_search/history_8000.Rdata"
+  path_result = "/Users/oli/Dropbox/__ZHAW/__Projekte_Post_ZHAH/shared_Oliver_Beate/mlt/UCI_Datasets/power-plant/2020-03-0630.861_grid_search/"
+  hist_select = "c:/Users/sick/dl Dropbox/beate sick/IDP_Projekte/DL_Projekte/shared_Oliver_Beate/mlt/UCI_Datasets/kin8nm/2020-03-0533.019_grid_search/history_200.Rdata"
+  path_result = "c:/Users/sick/dl Dropbox/beate sick/IDP_Projekte/DL_Projekte/shared_Oliver_Beate/mlt/UCI_Datasets/kin8nm/2020-03-0533.019_grid_search/"
   load(hist_select)
 }
 
@@ -74,6 +76,10 @@ for(i in levels(h$x_scale)){
   ggsave(paste0(path_result, "loss--x_scale_", i, ".png"),
          plot = p, width = 30, height = 8*6, limitsize = F)
 }
+
+max_step = max(h$step)
+h1 %>% filter(h$step == max_step)
+summary(h[h$step == max_step,])
 
 # # get x_scale value for each plot
 # idx = sapply(gridplot, function(x) x$data$x_scale[1])
