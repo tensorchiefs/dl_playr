@@ -13,7 +13,7 @@ source('bern_utils.R')
 source("model_utils.R")
 source('get_data_UCI.R')
 
-### data loaded from db 
+### data loaded from  db 
 offset_oliver = '/Users/oli/Dropbox/__ZHAW/__Projekte_Post_ZHAH/shared_Oliver_Beate/mlt/UCI_Datasets/'
 offset_beate  = "c:/Users/sick/dl Dropbox/beate sick/IDP_Projekte/DL_Projekte/shared_Oliver_Beate/mlt/UCI_Datasets/"
 offset = offset_oliver

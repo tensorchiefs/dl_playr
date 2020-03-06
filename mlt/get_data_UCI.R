@@ -111,7 +111,7 @@ get_data_power = function(path, split_num=0, spatz = 0.05, x_scale =FALSE) {
 }
 
 get_data_naval = function(path, split_num=0, spatz = 0.05, x_scale =FALSE) {
-  name = 'naval-propulsion-plant'
+  name = 'naval-propulsion-plant' 
   ret = load_data(path, split_num, spatz, x_scale,eps=1e-6)
   ret$name = name
   return (ret)
