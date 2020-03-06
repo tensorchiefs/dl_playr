@@ -6,11 +6,11 @@ if (FALSE){
   hist_select = "/Users/oli/Dropbox/__ZHAW/__Projekte_Post_ZHAH/shared_Oliver_Beate/mlt/UCI_Datasets/bostonHousing/2020-03-0629.624_grid_search/history_8000.Rdata"
   path_result = "/Users/oli/Dropbox/__ZHAW/__Projekte_Post_ZHAH/shared_Oliver_Beate/mlt/UCI_Datasets/bostonHousing/2020-03-0629.624_grid_search/"
   
-  hist_select = "/Users/oli/Dropbox/__ZHAW/__Projekte_Post_ZHAH/shared_Oliver_Beate/mlt/UCI_Datasets/kin8nm/2020-03-0624.986_grid_search/history_9000.Rdata"
-  path_result = "/Users/oli/Dropbox/__ZHAW/__Projekte_Post_ZHAH/shared_Oliver_Beate/mlt/UCI_Datasets/kin8nm/2020-03-0624.986_grid_search/"
+  hist_select = "/Users/oli/Dropbox/__ZHAW/__Projekte_Post_ZHAH/shared_Oliver_Beate/mlt/UCI_Datasets/kin8nm/2020-03-0632.969_grid_search/history_18000.Rdata"
+  path_result = "/Users/oli/Dropbox/__ZHAW/__Projekte_Post_ZHAH/shared_Oliver_Beate/mlt/UCI_Datasets/kin8nm/2020-03-0632.969_grid_search/"
   
-  hist_select = "/Users/oli/Dropbox/__ZHAW/__Projekte_Post_ZHAH/shared_Oliver_Beate/mlt/UCI_Datasets/energy/2020-03-0631.555_grid_search/history_8000.Rdata"
-  path_result = "/Users/oli/Dropbox/__ZHAW/__Projekte_Post_ZHAH/shared_Oliver_Beate/mlt/UCI_Datasets/energy/2020-03-0631.555_grid_search/"
+  hist_select = "/Users/oli/Dropbox/__ZHAW/__Projekte_Post_ZHAH/shared_Oliver_Beate/mlt/UCI_Datasets/energy/2020-03-0630.52_grid_search/history_18000.Rdata"
+  path_result = "/Users/oli/Dropbox/__ZHAW/__Projekte_Post_ZHAH/shared_Oliver_Beate/mlt/UCI_Datasets/energy/2020-03-0630.52_grid_search/"
   
   hist_select = "/Users/oli/Dropbox/__ZHAW/__Projekte_Post_ZHAH/shared_Oliver_Beate/mlt/UCI_Datasets/concrete/2020-03-0638.611_grid_search/history_9000.Rdata"
   path_result = "/Users/oli/Dropbox/__ZHAW/__Projekte_Post_ZHAH/shared_Oliver_Beate/mlt/UCI_Datasets/concrete/2020-03-0638.611_grid_search/"
