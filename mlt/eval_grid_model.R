@@ -1,7 +1,7 @@
 if (TRUE){
   hist_1 = history
-  hist_select = "c:/Users/sick/dl Dropbox/beate sick/IDP_Projekte/DL_Projekte/shared_Oliver_Beate/mlt/UCI_Datasets/kin8nm/2020-03-0533.019_grid_search/history_200.Rdata"
-  path_result = "c:/Users/sick/dl Dropbox/beate sick/IDP_Projekte/DL_Projekte/shared_Oliver_Beate/mlt/UCI_Datasets/kin8nm/2020-03-0533.019_grid_search/"
+  hist_select = "c:/Users/sick/dl Dropbox/beate sick/IDP_Projekte/DL_Projekte/shared_Oliver_Beate/mlt/UCI_Datasets/kin8nm/2020-03-0624.986_grid_search/history_9000.Rdata"
+  path_result = "c:/Users/sick/dl Dropbox/beate sick/IDP_Projekte/DL_Projekte/shared_Oliver_Beate/mlt/UCI_Datasets/kin8nm/2020-03-0624.986_grid_search/"
   load(hist_select)
 }
 
