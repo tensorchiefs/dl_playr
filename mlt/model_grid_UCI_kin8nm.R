@@ -14,8 +14,9 @@ source("model_utils.R")
 source('get_data_UCI.R')
 
 ### data loaded from db 
+offset_oliver = '/Users/oli/Dropbox/__ZHAW/__Projekte_Post_ZHAH/shared_Oliver_Beate/mlt/UCI_Datasets/'
 offset_beate  = "c:/Users/sick/dl Dropbox/beate sick/IDP_Projekte/DL_Projekte/shared_Oliver_Beate/mlt/UCI_Datasets/"
-offset = offset_beate
+offset = offset_oliver
 
 get_data = get_data_kin8nm
 path = paste(offset, 'kin8nm/', sep="")
@@ -26,7 +27,7 @@ str(ret)
 
 SCALE = TRUE
 reg_factor = 0.0 #Boston 0.05 Protein 0
-T_STEPS = 9000 #12000 #w.r.t Batchsize Protein 75000, Boston 50000
+T_STEPS = 18000 #12000 #w.r.t Batchsize Protein 75000, Boston 50000
 bs = 256L # boston -1, protein 128L, energy -1
 flds = NULL
 #runs = 5
@@ -40,9 +41,9 @@ x_scale = FALSE
 # grid_spatz= c(0.0, 0.01, 0.05)
 # grid_x_scale = c(FALSE, TRUE)
 
-grid_reg_factor = c(0.0, 0.03)
-grid_spatz= c(0.0, 0.05)
-grid_x_scale = c(FALSE, TRUE)
+grid_reg_factor = c(0.0, 0.005)
+grid_spatz= c(0.0)
+grid_x_scale = c(TRUE)
 
 hist_grid= make_hist_grid()
 history = make_hist()

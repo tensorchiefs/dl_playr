@@ -33,7 +33,7 @@ str(ret)
 
 SCALE = TRUE
 reg_factor = 0.0 #Boston 0.05 Protein 0
-T_STEPS = 8000 #12000 #w.r.t Batchsize Protein 75000, Boston 50000
+T_STEPS = 60000 #12000 #w.r.t Batchsize Protein 75000, Boston 50000
 bs = 512L # boston -1, protein 512L, energy -1
 flds = NULL
 #runs = 5
@@ -47,7 +47,7 @@ x_scale = FALSE
 # grid_spatz= c(0.0, 0.01, 0.05)
 # grid_x_scale = c(FALSE, TRUE)
 
-grid_reg_factor = c(0.0, 0.005, 0.01, 0.03)
+grid_reg_factor = c(0.0)#, 0.005)#, 0.01, 0.03)
 grid_spatz= c(0.0)
 grid_x_scale = c(TRUE)
 
@@ -55,7 +55,7 @@ hist_grid= make_hist_grid()
 history = make_hist()
 
 runs = runs
-runs =5  #  !! nur zum testen klein setzen
+runs =2  #  !! nur zum testen klein setzen
 ## !!!! warning: must have inverted order then for-loop below !!
 param_matrix = expand.grid(no_step=1:floor(T_STEPS/T_OUT),
                            no_fold=1:runs,

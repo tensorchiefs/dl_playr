@@ -14,8 +14,9 @@ source("model_utils.R")
 source('get_data_UCI.R')
 
 ### data loaded from db 
+offset_oliver = '/Users/oli/Dropbox/__ZHAW/__Projekte_Post_ZHAH/shared_Oliver_Beate/mlt/UCI_Datasets/'
 offset_beate  = "c:/Users/sick/dl Dropbox/beate sick/IDP_Projekte/DL_Projekte/shared_Oliver_Beate/mlt/UCI_Datasets/"
-offset = offset_beate
+offset = offset_oliver
 
 # get_data = get_data_protein
 # path = paste(offset, 'protein-tertiary-structure/', sep="")
@@ -46,9 +47,9 @@ x_scale = FALSE
 # grid_spatz= c(0.0, 0.01, 0.05)
 # grid_x_scale = c(FALSE, TRUE)
 
-grid_reg_factor = c(0.0, 0.03)
-grid_spatz= c(0.0, 0.05)
-grid_x_scale = c(FALSE, TRUE)
+grid_reg_factor = c(0.005, 0.01) #)0.03)
+grid_spatz= c(0.0)
+grid_x_scale = c(TRUE)
 
 hist_grid= make_hist_grid()
 history = make_hist()

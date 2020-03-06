@@ -1,12 +1,33 @@
 if (FALSE){
-  hist_1 = history
-  hist_select = "/Users/oli/Dropbox/__ZHAW/__Projekte_Post_ZHAH/shared_Oliver_Beate/mlt/UCI_Datasets/power-plant/2020-03-0630.861_grid_search/history_8000.Rdata"
-  path_result = "/Users/oli/Dropbox/__ZHAW/__Projekte_Post_ZHAH/shared_Oliver_Beate/mlt/UCI_Datasets/power-plant/2020-03-0630.861_grid_search/"
-  hist_select = "c:/Users/sick/dl Dropbox/beate sick/IDP_Projekte/DL_Projekte/shared_Oliver_Beate/mlt/UCI_Datasets/kin8nm/2020-03-0533.019_grid_search/history_200.Rdata"
-  path_result = "c:/Users/sick/dl Dropbox/beate sick/IDP_Projekte/DL_Projekte/shared_Oliver_Beate/mlt/UCI_Datasets/kin8nm/2020-03-0533.019_grid_search/"
-  load(hist_select)
+  #hist_1 = history
+  hist_select = "/Users/oli/Dropbox/__ZHAW/__Projekte_Post_ZHAH/shared_Oliver_Beate/mlt/UCI_Datasets/naval-propulsion-plant/2020-03-0644.132_grid_search/history_30000.Rdata"
+  path_result = "/Users/oli/Dropbox/__ZHAW/__Projekte_Post_ZHAH/shared_Oliver_Beate/mlt/UCI_Datasets/naval-propulsion-plant/2020-03-0644.132_grid_search/"
+  
+  hist_select = "/Users/oli/Dropbox/__ZHAW/__Projekte_Post_ZHAH/shared_Oliver_Beate/mlt/UCI_Datasets/bostonHousing/2020-03-0629.624_grid_search/history_8000.Rdata"
+  path_result = "/Users/oli/Dropbox/__ZHAW/__Projekte_Post_ZHAH/shared_Oliver_Beate/mlt/UCI_Datasets/bostonHousing/2020-03-0629.624_grid_search/"
+  
+  hist_select = "/Users/oli/Dropbox/__ZHAW/__Projekte_Post_ZHAH/shared_Oliver_Beate/mlt/UCI_Datasets/kin8nm/2020-03-0624.986_grid_search/history_9000.Rdata"
+  path_result = "/Users/oli/Dropbox/__ZHAW/__Projekte_Post_ZHAH/shared_Oliver_Beate/mlt/UCI_Datasets/kin8nm/2020-03-0624.986_grid_search/"
+  
+  hist_select = "/Users/oli/Dropbox/__ZHAW/__Projekte_Post_ZHAH/shared_Oliver_Beate/mlt/UCI_Datasets/energy/2020-03-0631.555_grid_search/history_8000.Rdata"
+  path_result = "/Users/oli/Dropbox/__ZHAW/__Projekte_Post_ZHAH/shared_Oliver_Beate/mlt/UCI_Datasets/energy/2020-03-0631.555_grid_search/"
+  
+  hist_select = "/Users/oli/Dropbox/__ZHAW/__Projekte_Post_ZHAH/shared_Oliver_Beate/mlt/UCI_Datasets/concrete/2020-03-0638.611_grid_search/history_9000.Rdata"
+  path_result = "/Users/oli/Dropbox/__ZHAW/__Projekte_Post_ZHAH/shared_Oliver_Beate/mlt/UCI_Datasets/concrete/2020-03-0638.611_grid_search/"
+  
+  hist_select = "/Users/oli/Dropbox/__ZHAW/__Projekte_Post_ZHAH/shared_Oliver_Beate/mlt/UCI_Datasets/concrete/2020-03-0627.489_grid_search/history_9000.Rdata"
+  path_result = "/Users/oli/Dropbox/__ZHAW/__Projekte_Post_ZHAH/shared_Oliver_Beate/mlt/UCI_Datasets/concrete/2020-03-0627.489_grid_search/"
+  
+  hist_select = "/Users/oli/Dropbox/__ZHAW/__Projekte_Post_ZHAH/shared_Oliver_Beate/mlt/UCI_Datasets/protein-tertiary-structure/2020-03-0534.314_grid_search/history_12000.Rdata"
+  path_result = "/Users/oli/Dropbox/__ZHAW/__Projekte_Post_ZHAH/shared_Oliver_Beate/mlt/UCI_Datasets/protein-tertiary-structure/2020-03-0534.314_grid_search/"
+  
+  hist_select = "/Users/oli/Dropbox/__ZHAW/__Projekte_Post_ZHAH/shared_Oliver_Beate/mlt/UCI_Datasets/yacht/2020-03-0635.059_grid_search/history_7000.Rdata"
+  path_result = "/Users/oli/Dropbox/__ZHAW/__Projekte_Post_ZHAH/shared_Oliver_Beate/mlt/UCI_Datasets/yacht/2020-03-0635.059_grid_search/"
+   
+  #hist_select = "c:/Users/sick/dl Dropbox/beate sick/IDP_Projekte/DL_Projekte/shared_Oliver_Beate/mlt/UCI_Datasets/kin8nm/2020-03-0533.019_grid_search/history_200.Rdata"
+  #path_result = "c:/Users/sick/dl Dropbox/beate sick/IDP_Projekte/DL_Projekte/shared_Oliver_Beate/mlt/UCI_Datasets/kin8nm/2020-03-0533.019_grid_search/"
 }
-
+load(hist_select)
 library(ggplot2)
 
 history = hist_grid
@@ -49,7 +70,7 @@ for(i in 1:length(levels(h$x_scale)) ){
       p = ggplot(data=h1, aes(x = step, y = loss, color=fold)) + 
         geom_line(lwd=1.5) +
         geom_hline(yintercept=2.48) +
-        #ylim(2.0,4.5) +
+        #ylim(0,1) +
         ggtitle(main, subtitle=sub) +
         facet_wrap(. ~ sample, ncol=2) +
         theme_bw() + 
@@ -77,9 +98,14 @@ for(i in levels(h$x_scale)){
          plot = p, width = 30, height = 8*6, limitsize = F)
 }
 
+library(dplyr)
 max_step = max(h$step)
-h1 %>% filter(h$step == max_step)
-summary(h[h$step == max_step,])
+hmax = filter(h, step == max_step, sample=='nll_test', spatz == 0, x_scale==TRUE)
+hmax %>% group_by(regularization)
+
+by(hmax$loss, hmax$regularization, mean)
+by(hmax$loss, hmax$regularization, sd)
+
 
 # # get x_scale value for each plot
 # idx = sapply(gridplot, function(x) x$data$x_scale[1])
