@@ -33,7 +33,7 @@ str(ret)
 
 SCALE = TRUE
 reg_factor = 0.0 #Boston 0.05 Protein 0
-T_STEPS = 60000 #12000 #w.r.t Batchsize Protein 75000, Boston 50000
+T_STEPS = 120000 #12000 #w.r.t Batchsize Protein 75000, Boston 50000
 bs = 512L # boston -1, protein 512L, energy -1
 flds = NULL
 #runs = 5
@@ -55,7 +55,7 @@ hist_grid= make_hist_grid()
 history = make_hist()
 
 runs = runs
-runs =2  #  !! nur zum testen klein setzen
+runs =5  #  !! nur zum testen klein setzen
 ## !!!! warning: must have inverted order then for-loop below !!
 param_matrix = expand.grid(no_step=1:floor(T_STEPS/T_OUT),
                            no_fold=1:runs,
@@ -63,6 +63,7 @@ param_matrix = expand.grid(no_step=1:floor(T_STEPS/T_OUT),
                            spatz=grid_spatz,
                            x_scale=grid_x_scale)
 ( k_max = nrow(param_matrix) )
+( out_path = paste0(path,Sys.Date(),round(rnorm(1,mean=30,sd=5),3),'_','grid_search/') )
 
 k=1
 for (x_scale in grid_x_scale){        # grid loop 
@@ -105,9 +106,12 @@ for (reg_factor in grid_reg_factor){  # grid loop
     print('dim(history) :')
     print(dim(history))
     for (i in 1:20){
-      ret = model_get_p_y(model_7, x_train1[i,,drop=FALSE], 0, 1, 100)
-      #print(paste0(i, '  ',round(sum(ret$p_y)/100,3)))
+      ret = model_get_p_y(model_7, x_train1[i,,drop=FALSE], 0, 1, 300)
+      print(paste0(i, '  ',round(sum(ret$p_y)/300,3)))
+      (out_name = paste0(out_path,'plot_',i,'.pdf'))
+      pdf(out_name)
       plot(ret$y, ret$p_y, main=paste0(i,' train ', round(sum(ret$p_y)/300,3)))
+      dev.off()
     }
   }
 }}} # close grid loops
@@ -136,7 +140,7 @@ str(hist_grid)
  xtabs(~spatz+x_scale, data=hist_grid)
  xtabs(~spatz+regularization, data=hist_grid)
  
-( out_path = paste0(path,Sys.Date(),round(rnorm(1,mean=30,sd=5),3),'_','grid_search/') )
+
  (out_name = paste0(out_path,'history_',T_STEPS,'.Rdata'))
  dir.create(out_path)
  save(hist_grid, file = out_name)
