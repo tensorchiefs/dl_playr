@@ -27,42 +27,61 @@ offset = offset_beate
 # name_tmp = "boston"
 # dir(path)  # should contain hdf5 files
 # dir(path_test_data) # should contain subdir "data"
+# 
 
 
-
-get_data = get_data_concrete
-#( path = paste0(offset, 'out_models/save_with_run_ID/concrete/2020-03-0823.553_test_run/', sep="") )
-( path = paste0(offset, 'out_models/save_with_run_ID/concrete/2020-03-0830.066_test_run/', sep="") )
-
-( path_test_data = paste0(offset,'concrete/') )
-name_tmp = "concrete"
-dir(path)  # should contain hdf5 files
-dir(path_test_data) # should contain subdir "data"
+# get_data = get_data_concrete
+# #( path = paste0(offset, 'out_models/save_with_run_ID/concrete/2020-03-0823.553_test_run/', sep="") )
+# ( path = paste0(offset, 'out_models/save_with_run_ID/concrete/2020-03-0830.066_test_run/', sep="") )
+# 
+# ( path_test_data = paste0(offset,'concrete/') )
+# name_tmp = "concrete"
+# dir(path)  # should contain hdf5 files
+# dir(path_test_data) # should contain subdir "data"
 
 
 # get_data = get_data_energy
 # (path = paste0(offset, 'out_models/save_with_run_ID/energy/2020-03-0833.266_test_run/', sep="") )
+# #(path = paste0(offset, 'out_models/save_with_run_ID/energy/2020-03-0729.071_test_run/', sep="") )
+# 
 # ( path_test_data = paste0(offset,'energy/') )
 # name_tmp = "energy"
 # dir(path)  # should contain hdf5 files
 # dir(path_test_data) # should contain subdir "data"
 
 
-# get_data = get_data_protein
-# path = paste(offset, 'protein-tertiary-structure/', sep="")
-# dir(path)  # should contain hdf5 files
-# dir(path_test_data) # should contain subdir "data"
+get_data = get_data_naval
+( path = paste0(offset, 'out_models/save_with_run_ID/naval/2020-03-0732.245_test_run/', sep="") )
+( path_test_data = paste0(offset,'naval-propulsion-plant/') )
+name_tmp = "naval"
+dir(path)  # should contain hdf5 files
+dir(path_test_data) # should contain subdir "data"
+
+
 
 # get_data = get_data_wine
-# ( path = paste0(offset, 'out_models/save_with_run_ID/wine/2020-03-0723.67_test_run/', sep="") )
+# #( path = paste0(offset, 'out_models/save_with_run_ID/wine/2020-03-0723.67_test_run/', sep="") )
+# # ( path = paste0(offset, 'out_models/save_with_run_ID/wine/2020-03-0827.921_test_run/', sep="") )
+# (path = paste0(offset, 'out_models/save_with_run_ID/wine/2020-03-0932.525_test_run/', sep="") )
+# # ( path = paste0(offset, 'out_models/save_with_run_ID/wine/2020-03-0926.808_test_run/', sep="") )
+# 
 # ( path_test_data = paste0(offset,'wine-quality-red/') )
 # name_tmp = "wine"
 # dir(path)  # should contain hdf5 files
 # dir(path_test_data) # should contain subdir "data"
 
+# get_data = get_data_protein
+# (path_test_data = paste(offset, 'protein-tertiary-structure', sep=""))
+# ( path = paste0(offset, 'out_models/save_with_run_ID/protein/2020-03-0727.913_test_run', sep="") )
+
+# name_tmp = "protein"
+# dir(path)  # should contain hdf5 files
+# dir(path_test_data) # should contain subdir "data"
+
 
 # get_data = get_data_yacht
-# ( path = paste(offset, 'out_models/save_with_run_ID/yacht/2020-03-0725.282_test_run/', sep="") )
+# #( path = paste(offset, 'out_models/save_with_run_ID/yacht/2020-03-0723.67_test_run/', sep="") )
+# ( path = paste(offset, 'out_models/save_with_run_ID/yacht/2020-03-0834.954_test_run/', sep="") )
 # ( path_test_data = paste0(offset,'yacht/') )
 # name_tmp = "yacht"
 # dir(path)  # should contain hdf5 files
@@ -70,26 +89,31 @@ dir(path_test_data) # should contain subdir "data"
 
 # get test data from run 19 for which we predict CPD
 ####################################################
-dat = get_data(path_test_data, split_num=19, spatz = 0, x_scale=TRUE)
+my_num_splits = 19   # folds-1
+# my_num_splits = 4
+dat = get_data(path_test_data, split_num=my_num_splits, spatz = 0, x_scale=TRUE)
 str(dat)
 
 x_test = tf$Variable(dat$X_test, dtype='float32')
 y_test = tf$reshape(tf$Variable(dat$y_test, dtype='float32'), c(-1L,1L))
 
 # ! set arguments for model_7 for which we then load weights
-x_dim = ncol(x_test)
+(x_dim = ncol(x_test))
 (runs = dat$runs)
 
+## cp this block form R-script
 SCALE = TRUE
-reg_factor = 0.01
-T_STEPS = 12000 #
-bs = -1 # boston -1, protein 128L, energy -1
+reg_factor = 0.0
+T_STEPS = 120000 #12000 #
+bs = 256L # boston -1, protein 128L, energy -1
 flds = NULL
 T_OUT = 100 # war auf 500 (zu hoch?)
-nb = 20L
+nb = 10L
 len_theta = nb + 1L
 spatz = 0.0
 x_scale = TRUE
+
+###########
 
 
 source('model_7.R')
@@ -109,6 +133,12 @@ model_7$model_s = load_model_hdf5(paste0(path,name_tmp, '_model_7_s.hfd5'))
 model_7$model_beta = load_model_hdf5(paste0(path,name_tmp, '_model_7_beta.hfd5'))
 model_7$model_a = load_model_hdf5(paste0(path,name_tmp, '_model_7_a.hfd5'))
 
+# model_7$model = load_model_hdf5(paste0(path,  'model_7_.hfd5'))
+# model_7$model_g = load_model_hdf5(paste0(path, 'model_7_g.hfd5'))
+# model_7$model_s = load_model_hdf5(paste0(path, 'model_7_s.hfd5'))
+# model_7$model_beta = load_model_hdf5(paste0(path, 'model_7_beta.hfd5'))
+# model_7$model_a = load_model_hdf5(paste0(path, 'model_7_a.hfd5'))
+
 
 model_test(model_7, x_test, y_test) 
 
@@ -126,10 +156,14 @@ area_cpd = data.frame(area=rep(-1, times=length(y_test)))
 
 for (i in 1:length(y_test)){
   # i=4
-  ret = model_get_p_y(model_7, x_test[i,,drop=FALSE], 0, 1, 100)
+  no_points=300
+  my_from = -0.5
+  my_to = 1.5
+  ret = model_get_p_y(model_7, x_test[i,,drop=FALSE], 
+                      from=my_from, to=my_to, length.out=no_points)
   # str(ret)  # we have 100 points
-  no_points = dim(ret)[1]
-  area_cpd[i,"area"] = round(sum(ret$p_y)/no_points,3)
+  #no_points = dim(ret)[1]
+  area_cpd[i,"area"] = round((my_to-my_from)*sum(ret$p_y)/no_points,3)
 }
 
 
@@ -151,7 +185,7 @@ hist_area=ggplot(data=area_cpd, aes(area)) +
        subtitle=paste0('this is a fraction of ', round(p_cut,2), 
                        ' (and ', round(p_cut2,2),')'))
 hist_area
-ggsave(paste0(path_cpd,name_tmp,'_fold_19_test_CPDs_area_hist.jpg'), 
+ggsave(paste0(path_cpd,'hist_area_CPDs_',name_tmp,'_fold_19_test.jpg'), 
        plot = last_plot(), width = 8, height = 3.5)
 
 # draw plots with cpd, trafo, hist for the first no_bsp test data
@@ -161,8 +195,8 @@ ggsave(paste0(path_cpd,name_tmp,'_fold_19_test_CPDs_area_hist.jpg'),
 
 for (i in 1:no_bsp){
   # i=4
-  ret = model_get_p_y(model_7, x_test[i,,drop=FALSE], 0, 1, 100)
-  integral = round(sum(ret$p_y)/100,3)
+  ret = model_get_p_y(model_7, x_test[i,,drop=FALSE], my_from, my_to, no_points)
+  integral = round((my_to-my_from)*sum(ret$p_y)/no_points,3)
   title_tmp = paste0(dat$name,'_run_19_obs_', i, '_integral_', integral)
   p_dens = ggplot(data=ret, aes(x = y, y = p_y)) +
     geom_line(lwd=1.2) + 
@@ -188,7 +222,7 @@ for (i in 1:no_bsp){
   plot_grid(p_dens, p_trafo, hist_y1, hist_y2, nrow=2)
   
   ggsave(paste0(path_cpd,name_tmp,'_fold_19_obs_',i,'_CPD_trafo.jpg'), 
-         plot = last_plot(), width = 8, height = 3.5)
+         plot = last_plot(), width = 14, height = 5)
 }
 
 
