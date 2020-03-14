@@ -81,6 +81,8 @@ history = make_hist()
     pdf(out_name)
     plot(ret$y, ret$p_y, main=paste0(i,' test ', round(sum(ret$p_y)/300,3)))
     dev.off()
+    (out_name1 = paste0(out_path,'py_and_other_',i,'.csv'))
+    write.csv(ret, file=out_name1)
   }
 }
 
@@ -108,11 +110,11 @@ str(hist_grid)
  #xtabs(~spatz+x_scale, data=hist_grid)
  #xtabs(~spatz+regularization, data=hist_grid)
  
- save_model_hdf5(model_7_cnn$model, paste0(out_path,'model_7_.hfd5'))
- save_model_hdf5(model_7_cnn$model_g, paste0(out_path,'model_7_g.hfd5'))
- save_model_hdf5(model_7_cnn$model_s, paste0(out_path,'model_7_s.hfd5'))
- save_model_hdf5(model_7_cnn$model_beta, paste0(out_path,'model_7_beta.hfd5'))
- save_model_hdf5(model_7_cnn$model_a, paste0(out_path,'model_7_a.hfd5'))
+ save_model_hdf5(model_7$model, paste0(out_path,'model_7_.hfd5'))
+ save_model_hdf5(model_7$model_g, paste0(out_path,'model_7_g.hfd5'))
+ save_model_hdf5(model_7$model_s, paste0(out_path,'model_7_s.hfd5'))
+ save_model_hdf5(model_7$model_beta, paste0(out_path,'model_7_beta.hfd5'))
+ save_model_hdf5(model_7$model_a, paste0(out_path,'model_7_a.hfd5'))
  
 
  (out_name = paste0(out_path,'history_',T_STEPS,'.Rdata'))
