@@ -1,7 +1,7 @@
 library(mlt)
 
 
-NB = 15
+NB = 10
 
 get_data_lin = function(sigma = 0.05){
   x = seq(0,5,length.out = 100)
@@ -52,7 +52,7 @@ get_data_2l = function(){ #daten auf 2 geraden
   n=500
   x1 = seq(0,5,length.out = n/2)
   x2 = seq(0,5,length.out = n/2)
-  y1 = rnorm(n/2, mean=(x1*0.1 + 0.2), 0.05 + 0.05*x)
+  y1 = rnorm(n/2, mean=(x1*(0.5) + 0.2), 0.05 + 0.05*x)
   y2 = rnorm(n/2, mean=(x2*(-0.5) + 0.2), 0.25  - 0.04*x)
   x = c(x1,x2)
   y = c(y1, y2)
@@ -82,8 +82,6 @@ xy_dat = get_data_nx()
 xy_dat = get_data_lin(sigma = 0.01)
 xy_dat = get_data_2l()
 xy_dat = get_data_sin()
-
-
 
 max(xy_dat$y)
 min(xy_dat$y)
