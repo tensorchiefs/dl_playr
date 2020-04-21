@@ -41,3 +41,5 @@ vignettes/*.pdf
 *.Rproj
 
 *.Rout
+
+*.ipynb

@@ -14,11 +14,13 @@ utils_back_scale = function(y_scale, y){
 # utils for bernstein
 ############################################################
 
+# Construct h according to MLT paper (Hothorn, Möst, Bühlmann, p12)
 init_beta_dist_for_h = function(len_theta){
-  beta_dist = tfd_beta(1:len_theta, len_theta:1)
+  beta_dist = tfd_beta(1:len_theta, len_theta:1) 
   return (beta_dist)
 }
 
+# Construct h_dash according to MLT (Hothorn, Möst, Bühlmann, p12) correcting the factor M/(M+1) with 1 
 init_beta_dist_for_h_dash = function(len_theta){
   M = len_theta - 1
   beta_dist = tfd_beta(1:M, M:1)

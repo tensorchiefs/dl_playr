@@ -45,8 +45,8 @@ delta=abs(diff(range(y)))/4
 my_min = min(y)-delta
 my_max = max(y)+delta
 plot(x,y, ylim=c(my_min, my_max))
-plot(seq(0,1.0,0.0001), get_data_sin_dist(1, seq(0,1.0,0.0001)))
-sum(get_data_sin_dist(1, seq(0,1.0,0.0001)))/10000
+#plot(seq(0,1.0,0.0001), get_data_sin_dist(1, seq(0,1.0,0.0001)))
+#sum(get_data_sin_dist(1, seq(0,1.0,0.0001)))/10000
 
 get_data_2l = function(){ #daten auf 2 geraden 
   n=500
@@ -130,9 +130,10 @@ library(tfprobability)
 source('bern_utils.R')
 source("model_utils.R")
 source('data.R')
+
 # MLT Network Model 
-xx = tf$Variable(as.matrix(x, rcols=1), dtype='float32')
-yy = tf$Variable(as.matrix(y, rcols=1), dtype='float32')
+xx = tf$Variable(as.matrix(x, ncol=1), dtype='float32')
+yy = tf$Variable(as.matrix(y, ncol=1), dtype='float32')
 
 len_theta = as.integer(NB + 1L)
 T_OUT = 100

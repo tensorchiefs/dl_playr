@@ -192,7 +192,7 @@ train_step = function(x_train, y_train, model){
 
 
 #train_step_au = train_step#tf_function(train_step) 
-train_step_au = tf_function(train_step) 
+train_step_au = tf_function(train_step) #Using tf_function to speed up calculation
 model_train = function(model, history, x_train, y_train, x_test, y_test,save_model = FALSE, T_STEPS){
   start_time = Sys.time()
   bs = model$bs
@@ -239,6 +239,7 @@ model_train = function(model, history, x_train, y_train, x_test, y_test,save_mod
   return(history)
 }
 
+# Application of the trained model on the test set returning the likelihood
 model_test = function(model, x_test, y_test){
   out_hy = model$model(x_test)
   g = model$model_g(x_test)
